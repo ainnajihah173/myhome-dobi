@@ -126,7 +126,7 @@
                 </li>
 
                 <li class="side-nav-item">
-                    <a href="#" class="side-nav-link">
+                    <a href="{{ route('delivery.index') }}" class="side-nav-link">
                         <i class="uil-truck"></i>
                         <span> Pickup & Delivery </span>
                     </a>
