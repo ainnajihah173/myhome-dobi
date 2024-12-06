@@ -35,7 +35,7 @@
 
                             <div class="text-center w-75 m-auto">
                                 <h4 class="text-dark-50 text-center mt-0 font-weight-bold">Sign In</h4>
-                                <p class="text-muted mb-4">Enter your email address and password here
+                                <p class="text-muted mb-4">Enter your email address and password
                                 </p>
                             </div>
 

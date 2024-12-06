@@ -33,11 +33,11 @@
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td></td>
-                                    <td>
-                                    </td>
-                                    <td></td>
-                                    <td></td>
+                                    <td>1</td>
+                                    <td>Siti Fatimah</td>
+                                    <td>Clothes</td>
+                                    <td>Wash & Fold</td>
+                                    <td>Sila basuh baju saya elok elok</td>
                                     <td>
                                         <span class="badge badge-danger badge-pill">Pending</span>
                                     </td>
@@ -54,12 +54,9 @@
                                         <!-- Update Status Page-->
                                         <a href="" class="action-icon-warning" data-toggle="modal"
                                             data-target="#bs-update-modal-sm"> <i class="mdi mdi-check-circle"></i></a>
-
                                 </tr>
-
                         </table>
                     </div> <!-- end card-body-->
-
                 </div> <!-- end card-->
             </div> <!-- end col -->
         </div> <!-- end row -->

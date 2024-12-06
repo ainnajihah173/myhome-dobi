@@ -15,52 +15,72 @@
                         <form method="POST" action={{ route('order.store') }} enctype="multipart/form-data">
                             @csrf
                             <div class="row justify-content-center align-items-center g-2">
-                                <div class="col-lg-6">
-                                    <div class="form-group mb-3">
-                                        <label for="kiosk-tenant">Name</label>
-                                        <input type="text" class="form-control" value="" readonly>
+                                <!-- Name -->
+                                <div class="col-md-6">
+                                    <label for="name" class="form-label">Name</label>
+                                    <input type="text" class="form-control" id="name" placeholder="Ali Bin Abu"
+                                        required>
+                                </div>
+                                <!-- Phone Number -->
+                                <div class="col-md-6">
+                                    <label for="phone" class="form-label">Phone Number</label>
+                                    <input type="tel" class="form-control" id="phone" placeholder="+60123456789"
+                                        required>
+                                </div>
+                                <!-- Email -->
+                                <div class="col-md-6 mt-2">
+                                    <label for="email" class="form-label">Email</label>
+                                    <input type="email" class="form-control" id="email"
+                                        placeholder="mohdali23@gmail.com" required>
+                                </div>
+                                <!-- Order Method -->
+                                <div class="col-md-6 mt-2">
+                                    <label for="order-method" class="form-label">Order Method</label>
+                                    <select class="form-select form-control" id="order-method" required>
+                                        <option selected>Please Select...</option>
+                                        <option>Walk in</option>
+                                        <option>Delivery</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6"></div>
+                                <!-- Delivery Option -->
+                                <div class="col-md-6 mt-2">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="delivery-option">
+                                        <label class="form-check-label" for="delivery-option">
+                                            Please tick if you want delivery option
+                                        </label>
                                     </div>
                                 </div>
-                                <div class="col-lg-6">
-                                    <div class="form-group mb-3">
-                                        <label for="kiosk-number">Phone Number</label>
-                                        <input type="text" id="kiosk-number"
-                                            value=""
-                                            class="form-control" readonly>
-                                    </div>
+                                <!-- Laundry Type -->
+                                <div class="col-md-6 mt-2">
+                                    <label for="laundry-type" class="form-label">Laundry Type</label>
+                                    <select class="form-select form-control" id="laundry-type" required>
+                                        <option selected>Please Select...</option>
+                                        <option>Washing</option>
+                                        <option>Dry Cleaning</option>
+                                        <option>Ironing</option>
+                                    </select>
                                 </div>
-                                <div class="col-lg-6">
-                                    <div class="form-group mb-3">
-                                        <label for="kiosk-complaint">Kiosk Complaint</label>
-                                        <input type="text" id="kiosk-complaint" class="form-control" value="Repair Kiosk"
-                                            readonly>
-                                    </div>
+                                <!-- Service -->
+                                <div class="col-md-6 mt-2">
+                                    <label for="service" class="form-label">Service</label>
+                                    <select class="form-select form-control" id="service" required>
+                                        <option selected>Please Select...</option>
+                                        <option>Standard</option>
+                                        <option>Express</option>
+                                    </select>
                                 </div>
-                                <div class="col-lg-6">
-                                    <div class="form-group mb-3">
-                                        <label for="phone">No. Telephone</label>
-                                        <input type="text" id="phone" value=""
-                                            class="form-control" readonly>
-                                    </div>
+                                <!-- Remark -->
+                                <div class="col-md-6 mt-2">
+                                    <label for="remark" class="form-label">Remark</label>
+                                    <textarea class="form-control" id="remark" rows="3" placeholder="Enter any remarks here..."></textarea>
                                 </div>
-                                <div class="col-lg-6 mt-2">
-                                    <p class="text-muted font-13">
-                                        Give your complaint a short and clear description.<br>
-                                        120-160 characters is the recommended length.
-                                    </p>
-                                </div>
-                                <div class="col-lg-6"></div>
-                                <div class="col-lg-6">
-                                    <div class="form-group mb-3">
-                                        <label for="complaint-desc">Complaint Description</label>
-                                        <textarea class="form-control" name="description" rows="5"></textarea>
-                                    </div>
-                                </div>
-                                <div class="col-lg-6"></div>
+                                <div class="col-md-6"></div>
                             </div><!-- end row-->
-                            <div class="text-center mt-2">
+                            <div class="text-center mt-3">
                                 <button type="button" onclick="history.back()" class="btn btn-light mr-3">Back</button>
-                                <button type="submit" class="btn btn-danger">Save</button>
+                                <button type="submit" class="btn btn-primary">Save</button>
                             </div>
                         </form>
                     </div> <!-- end card-body-->
