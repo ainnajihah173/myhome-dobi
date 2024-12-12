@@ -18,19 +18,31 @@ class LaundryServiceSeeder extends Seeder
             [
                 'service_name' => 'Wash & Fold',
                 'laundry_type_id' => '1',
-                'price' => '3.0',
+                'price' => '1.0',
             ],
 
             [
                 'service_name' => 'Wash & Iron',
                 'laundry_type_id' => '1',
-                'price' => '5.0',
+                'price' => '2.0',
             ],
             
             [
                 'service_name' => 'Dry Cleaning',
                 'laundry_type_id' => '1',
-                'price' => '7.0',
+                'price' => '5.0',
+            ],
+
+            [
+                'service_name' => 'Standard Curtains',
+                'laundry_type_id' => '2',
+                'price' => '8.0',
+            ],
+
+            [
+                'service_name' => 'Heavy/Blackout Curtains',
+                'laundry_type_id' => '2',
+                'price' => '12.0',
             ],
 
         ]);

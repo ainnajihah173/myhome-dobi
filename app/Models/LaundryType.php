@@ -9,7 +9,7 @@ class LaundryType extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['laundry_name'];
+    protected $fillable = ['laundry_name', 'description'];
 
     public function services()
     {

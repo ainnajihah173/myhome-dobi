@@ -12,41 +12,41 @@
                         <p class="text-muted font-13 mb-4">
                             Write your new order here. We are ready to serve!
                         </p>
-                        <form method="POST" action={{ route('order.store') }} enctype="multipart/form-data">
+                        <form method="POST" action={{ route('order.store') }}>
                             @csrf
                             <div class="row justify-content-center align-items-center g-2">
                                 <!-- Name -->
                                 <div class="col-md-6">
                                     <label for="name" class="form-label">Name</label>
-                                    <input type="text" class="form-control" id="name" placeholder="Ali Bin Abu"
-                                        required>
+                                    <input type="text" class="form-control" name="name" placeholder="Ali Bin Abu"
+                                        required value="{{ $users->name ?? ''}}">
                                 </div>
                                 <!-- Phone Number -->
                                 <div class="col-md-6">
                                     <label for="phone" class="form-label">Phone Number</label>
-                                    <input type="tel" class="form-control" id="phone" placeholder="+60123456789"
-                                        required>
+                                    <input type="tel" class="form-control" name="contact_number" placeholder="0123456789"
+                                        required value="{{ $users->contact_number ?? ''}}">
                                 </div>
                                 <!-- Email -->
                                 <div class="col-md-6 mt-2">
                                     <label for="email" class="form-label">Email</label>
-                                    <input type="email" class="form-control" id="email"
-                                        placeholder="mohdali23@gmail.com" required>
+                                    <input type="email" class="form-control" name="email"
+                                        placeholder="mohdali23@gmail.com" required value="{{ $users->email ?? ''}}">
                                 </div>
                                 <!-- Order Method -->
                                 <div class="col-md-6 mt-2">
                                     <label for="order-method" class="form-label">Order Method</label>
-                                    <select class="form-select form-control" id="order-method" required>
-                                        <option selected>Please Select...</option>
-                                        <option>Walk in</option>
-                                        <option>Pickup</option>
+                                    <select class="form-select form-control" required name="order_method" id="order_method" onchange="toggleAddressForm()">
+                                        <option selected disabled>Please Select...</option>
+                                        <option value="Walk in">Walk in</option>
+                                        <option value="Pickup">Pickup</option>
                                     </select>
                                 </div>
                                 <div class="col-md-6"></div>
                                 <!-- Delivery Option -->
                                 <div class="col-md-6 mt-2">
                                     <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="delivery-option">
+                                        <input class="form-check-input" type="checkbox" name="delivery_option" id="delivery_option" value="1" onchange="toggleAddressForm()">
                                         <label class="form-check-label" for="delivery-option">
                                             Please tick if you want delivery option
                                         </label>
@@ -55,26 +55,33 @@
                                 <!-- Laundry Type -->
                                 <div class="col-md-6 mt-2">
                                     <label for="laundry-type" class="form-label">Laundry Type</label>
-                                    <select class="form-select form-control" id="laundry-type" required>
-                                        <option selected>Please Select...</option>
-                                        <option>Washing</option>
-                                        <option>Dry Cleaning</option>
-                                        <option>Ironing</option>
+                                    <select name="laundry_type_id" id="laundry_type_id" class="form-select form-control">
+                                        <option selected disabled>Please Select...</option>
+                                        @foreach ($laundryTypes as $type)
+                                            <option value="{{ $type->id }}">{{ $type->laundry_name }}</option>
+                                        @endforeach
                                     </select>
                                 </div>
                                 <!-- Service -->
                                 <div class="col-md-6 mt-2">
                                     <label for="service" class="form-label">Service</label>
-                                    <select class="form-select form-control" id="service" required>
-                                        <option selected>Please Select...</option>
-                                        <option>Standard</option>
-                                        <option>Express</option>
+                                    <select name="laundry_service_id" id="laundry_service_id" class="form-select form-control">
+                                        <option selected disabled>Please Select...</option>
+                                        @foreach ($laundryServices as $service)
+                                            <option value="{{ $service->id }}" data-type="{{ $service->laundry_type_id }}">
+                                                {{ $service->service_name }}
+                                            </option>
+                                        @endforeach
                                     </select>
+                                </div>
+                                <div class="col-md-6 mt-2" style="display: none;" id="address_form">
+                                    <label for="remark" class="form-label">Address</label>
+                                    <textarea class="form-control" name="address" rows="3" placeholder="Enter any remarks here..."></textarea>
                                 </div>
                                 <!-- Remark -->
                                 <div class="col-md-6 mt-2">
                                     <label for="remark" class="form-label">Remark</label>
-                                    <textarea class="form-control" id="remark" rows="3" placeholder="Enter any remarks here..."></textarea>
+                                    <textarea class="form-control" name="remark" rows="3" placeholder="Enter any remarks here..."></textarea>
                                 </div>
                                 <div class="col-md-6"></div>
                             </div><!-- end row-->

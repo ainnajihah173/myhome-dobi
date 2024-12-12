@@ -12,18 +12,18 @@ return new class extends Migration {
     {
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('customer_id')->constrained('users')->onDelete('cascade');
-            $table->string('name')->nullable(); // For unregistered customers
-            $table->string('email')->nullable(); // For unregistered customers
-            $table->string('phone_number', 15)->nullable(); // For unregistered customers
-            $table->string('laundry_type');
-            $table->string('service');
+            $table->foreignId('user_id')->nullable(); //registered user
+            $table->foreignId('guest_id')->nullable(); //unregistered user
+            $table->foreignId('laundry_service_id');
+            $table->foreignId('laundry_type_id');
             $table->text('remark')->nullable();
-            $table->decimal('total_amount', 10, 2);
+            $table->integer('quantity')->nullable();
+            $table->decimal('total_amount', 10, 2)->nullable();
+            $table->decimal('delivery_fee', 10, 2)->nullable();
             $table->enum('status', ['Pending', 'In Work', 'Pay', 'Complete'])->default('Pending');
             $table->enum('order_method', ['Walk in', 'Pickup']);
-            $table->boolean('delivery_option')->default(false);
-            $table->text("address")->nullable();
+            $table->boolean('delivery_option')->default(false); //0 -> not delivery, 1 -> delivery
+            $table->text('address')->nullable();
             $table->timestamps();
         });
     }

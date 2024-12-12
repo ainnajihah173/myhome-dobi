@@ -11,10 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('laundry_types', function (Blueprint $table) {
+        Schema::create('guests', function (Blueprint $table) {
             $table->id();
-            $table->string('laundry_name')->unique();
-            $table->text('description');
+            $table->string('name')->nullable(); // For unregistered customers
+            $table->string('email')->nullable(); // For unregistered customers
+            $table->string('contact_number', 15)->nullable(); // For unregistered customers
             $table->timestamps();
         });
     }
@@ -24,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('laundry_types');
+        Schema::dropIfExists('guests');
     }
 };
