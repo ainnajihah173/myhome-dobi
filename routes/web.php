@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\LaundryController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
@@ -24,6 +25,9 @@ Route::get('/', function () {
 Route::middleware('auth')->group(function () {
     
     Route::get('/dashboard',[UserController::class,'index'])->name('dashboard');
+
+    /*Manage Laundry Type and Services*/
+    Route::resource('laundry',LaundryController::class);
 
     /*Manage Order*/
     Route::resource('order', OrderController::class);

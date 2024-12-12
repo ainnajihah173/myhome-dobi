@@ -39,7 +39,7 @@
                                     <select class="form-select form-control" id="order-method" required>
                                         <option selected>Please Select...</option>
                                         <option>Walk in</option>
-                                        <option>Delivery</option>
+                                        <option>Pickup</option>
                                     </select>
                                 </div>
                                 <div class="col-md-6"></div>

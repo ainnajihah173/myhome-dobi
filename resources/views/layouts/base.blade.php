@@ -119,6 +119,12 @@
 
                 @if(auth()->user()->role === 'Staff')
                 <li class="side-nav-item">
+                    <a href="{{ route('laundry.index') }}" class="side-nav-link">
+                        <i class="uil-cog"></i>
+                        <span>Laundry Type & Service </span>
+                    </a>
+                </li>
+                <li class="side-nav-item">
                     <a href="#" class="side-nav-link">
                         <i class="uil-wallet"></i>
                         <span>Bill & Payment </span>
