@@ -6,6 +6,8 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\DeliveryController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\BillingPaymentController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -35,6 +37,9 @@ Route::middleware('auth')->group(function () {
     /*Manage Pickup & Delivery*/
     Route::resource('delivery', DeliveryController::class);
 
+        /* Billing and Payment Page */
+    Route::resource('billing-payment', BillingPaymentController::class);
+;
     /*Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');*/

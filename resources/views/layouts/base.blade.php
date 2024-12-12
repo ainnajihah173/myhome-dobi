@@ -108,6 +108,15 @@
                 </li>
                 @endif
 
+                @if(auth()->user()->role === 'Admin' || auth()->user()->role === 'Staff')
+                <li class="side-nav-item">
+                <a href="{{ route('billing-payment.index') }}" class="side-nav-link">
+                        <i class="uil-wallet"></i>
+                        <span>billing and Payment</span>
+                    </a>
+                </li>
+                @endif
+
                 @if(auth()->user()->role === 'Customer' || auth()->user()->role === 'Staff')
                 <li class="side-nav-item">
                     <a href="{{ route('order.index') }}" class="side-nav-link">
