@@ -138,7 +138,19 @@
                         </a>
                     </li>
                 @endif
+
+                @if(auth()->user()->role === 'Admin' || auth()->user()->role === 'Staff')
+                    <li class="side-nav-item">
+                         <a href="{{ route('billing-payment.index') }}" class="side-nav-link">
+                             <i class="uil-wallet"></i> 
+                             <span>Billing and Payment</span>
+                         </a>
+                    </li>
+                @endif
+
             </ul>
+
+            
 
 
             <!-- End Sidebar -->
