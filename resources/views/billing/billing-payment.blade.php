@@ -94,7 +94,7 @@
                             @foreach($sales as $key => $sale)
                                 <tr>
                                     <td>{{ $key + 1 }}</td>
-                                    <td>{{ DateTime::createFromFormat('!m', $sale->month)->format('F') }}</td>
+                                    <td>{{ $sale->month ? DateTime::createFromFormat('!m', $sale->month)->format('F') : 'Invalid Month' }}</td>
                                     <td>{{ $sale->year }}</td>
                                     <td>RM {{ number_format($sale->total_sales, 2) }}</td>
                                     <td>

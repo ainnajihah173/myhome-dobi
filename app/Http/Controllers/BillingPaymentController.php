@@ -43,15 +43,17 @@ class BillingPaymentController extends Controller
     
         // Calculate sales list for table
         $sales = DB::table('orders')
-            ->select(
-                DB::raw('CAST(MONTH(created_at) AS UNSIGNED) as month'),
-                DB::raw('YEAR(created_at) as year'),
-                DB::raw('SUM(total_amount) as total_sales')
-            )
-            ->groupBy('month', 'year')
-            ->orderBy('year', 'desc')
-            ->orderBy('month', 'asc')
-            ->get();
+    ->select(
+        DB::raw('CAST(MONTH(created_at) AS UNSIGNED) as month'),
+        DB::raw('YEAR(created_at) as year'),
+        DB::raw('SUM(total_amount) as total_sales')
+    )
+    ->whereNotNull('created_at') // Exclude rows with NULL created_at
+    ->groupBy('month', 'year')
+    ->orderBy('year', 'desc')
+    ->orderBy('month', 'asc')
+    ->get();
+
     
         // Pass data to the view
         return view('billing.billing-payment', compact('salesSummary', 'salesData', 'sales'));
@@ -70,6 +72,31 @@ class BillingPaymentController extends Controller
         // Pass the sales details to the view
         return view('billing.sales-details', compact('salesDetails', 'month', 'year'));
     }
+
+    public function customerOrders()
+{
+    $customerId = auth()->user()->id; // Get the logged-in customer's ID
+
+    // Fetch orders for the logged-in customer
+    $orders = DB::table('orders')
+        ->where('user_id', $customerId)
+        ->where('status', 'Pending') // Show only unpaid orders
+        ->orderBy('created_at', 'desc')
+        ->get();
+
+    return view('billing.customer-orders', compact('orders'));
+}
+
+public function payOrder(Request $request, $id)
+{
+    // Mark the order as paid
+    DB::table('orders')
+        ->where('id', $id)
+        ->update(['status' => 'Pay']);
+
+    return redirect()->route('billing.customer.orders')->with('success', 'Order has been paid successfully.');
+}
+
 }
 
 
