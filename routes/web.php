@@ -38,7 +38,11 @@ Route::middleware('auth')->group(function () {
     Route::resource('delivery', DeliveryController::class);
 
         /* Billing and Payment Page */
-    Route::resource('billing-payment', BillingPaymentController::class);
+        Route::get('/billing-payment', [BillingPaymentController::class, 'index'])->name('billing-payment.index');
+        Route::get('/sales-details/{month}/{year}', [BillingPaymentController::class, 'salesDetails'])->name('sales.details');
+        
+
+
 ;
     /*Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
