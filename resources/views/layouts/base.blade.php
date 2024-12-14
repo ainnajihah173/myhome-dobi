@@ -92,9 +92,9 @@
                     </li>
 
                     <li class="side-nav-item">
-                        <a href="#" class="side-nav-link">
+                        <a href="{{route('staff.index')}}" class="side-nav-link">
                             <i class="uil-user-plus"></i>
-                            <span> Shift Management </span>
+                            <span> Staff Management </span>
                         </a>
                     </li>
                 @endif
@@ -190,7 +190,9 @@
 
         <!-- Start Content-->
         <div class="container-fluid">
+
             @yield('content')
+
         </div> <!-- container -->
     </div> <!-- content -->
 

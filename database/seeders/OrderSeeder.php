@@ -17,7 +17,7 @@ class OrderSeeder extends Seeder
 
             // For Registered User
             [
-                'user_id' => 3, 
+                'user_id' => 2, 
                 'laundry_service_id' => 1, 
                 'laundry_type_id' => 1, 
                 'quantity' => 5,
@@ -31,7 +31,7 @@ class OrderSeeder extends Seeder
 
             // For Registered User with Remark
             [
-                'user_id' => 3, 
+                'user_id' => 2, 
                 'laundry_service_id' => 3, 
                 'laundry_type_id' => 1, 
                 'quantity' => 1,
