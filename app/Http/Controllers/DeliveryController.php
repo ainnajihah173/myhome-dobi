@@ -1,7 +1,10 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use App\Models\Order;
+use App\Models\User;
+use App\Models\Guest;
+use App\Models\LaundryService;
 use Illuminate\Http\Request;
 use App\Models\Delivery;
 
@@ -12,16 +15,24 @@ class DeliveryController extends Controller
      */
     public function index()
     {
-        return view('delivery.index');
+        $orders = Order::all();
+        $deliverys = Delivery::with('orders')->get();
+        return view('delivery.index', compact('deliverys', 'orders'));
     }
 
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function AssignPickupDriver($id)
     {
-        return view('delivery.create');
+        $orders = Order::findOrFail($id);
+        $users = User::whereHas('staff', function ($query) {
+            $query->where('role', 'Pickup & Delivery Driver');
+        })->get();
+        
+        return view('delivery.create', compact('orders', 'users'));
     }
+
 
     /**
      * Store a newly created resource in storage.

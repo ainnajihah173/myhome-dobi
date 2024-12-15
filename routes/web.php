@@ -36,6 +36,7 @@ Route::middleware('auth')->group(function () {
 
     /*Manage Pickup & Delivery*/
     Route::resource('delivery', DeliveryController::class);
+    Route::get('/delivery/create/{id}', [DeliveryController::class, 'AssignPickupDriver'])->name('delivery.create');
 
         /* Billing and Payment Page */
         Route::get('/billing-payment', [BillingPaymentController::class, 'index'])->name('billing-payment.index');
@@ -43,6 +44,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/customer-payment-page/{order_id}', [BillingPaymentController::class, 'customerPaymentPage'])->name('billing.customer.payment.page');
         Route::post('/billing/customer/payment', [BillingPaymentController::class, 'payOrder'])->name('billing.customer.payment');
         Route::get('/billing/invoice/{orderId}', [BillingPaymentController::class, 'generateInvoice'])->name('billing.invoice');
+
 
 
         
