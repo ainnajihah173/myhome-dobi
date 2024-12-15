@@ -26,7 +26,9 @@ class OrderSeeder extends Seeder
                 'order_method' => 'Pickup',
                 'delivery_option' => true,
                 'address' => 'XXXXXXXXXXXXXX',
-                'remark' => null, // Added null for remark
+                'remark' => null,
+                'created_at' => now(),
+                'updated_at' => now(),
             ],
 
             // For Registered User with Remark
@@ -41,6 +43,8 @@ class OrderSeeder extends Seeder
                 'delivery_option' => true,
                 'address' => 'XXXXXXXXXXXXXX',
                 'remark' => 'Tolong basuh elok-elok', 
+                'created_at' => now(),
+                'updated_at' => now(),
             ],
 
         ]);
