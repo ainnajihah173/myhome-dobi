@@ -7,6 +7,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\DeliveryController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BillingPaymentController;
+use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\StaffController;
 
 /*
@@ -28,6 +29,17 @@ Route::middleware('auth')->group(function () {
     
     Route::get('/dashboard',[UserController::class,'index'])->name('dashboard');
 
+    /*Manage Staff*/
+    Route::resource('staff', StaffController::class);
+    //schedule
+    // Route::get('/shift', [StaffController::class, 'schedule'])->name('staff.schedule');
+
+    /*Manage Schedule*/
+    Route::get('/api/staff', [ScheduleController::class, 'getAllStaff']);
+    Route::get('/api/schedules', [ScheduleController::class, 'getSchedules']);// Fetch schedules for calendar
+    Route::resource('schedule', ScheduleController::class);
+
+
     /*Manage Laundry Type and Services*/
     Route::resource('laundry',LaundryController::class);
 
@@ -44,17 +56,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/customer-payment-page/{order_id}', [BillingPaymentController::class, 'customerPaymentPage'])->name('billing.customer.payment.page');
         Route::post('/billing/customer/payment', [BillingPaymentController::class, 'payOrder'])->name('billing.customer.payment');
         Route::get('/billing/invoice/{orderId}', [BillingPaymentController::class, 'generateInvoice'])->name('billing.invoice');
-
-
-
         
 
-
-
-
-
-
-     
 
 ;
     /*Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
