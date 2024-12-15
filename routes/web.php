@@ -40,19 +40,19 @@ Route::middleware('auth')->group(function () {
         /* Billing and Payment Page */
         Route::get('/billing-payment', [BillingPaymentController::class, 'index'])->name('billing-payment.index');
         Route::get('/sales-details/{month}/{year}', [BillingPaymentController::class, 'salesDetails'])->name('sales.details');
-        Route::get('/customer-orders', [BillingPaymentController::class, 'customerOrders'])->name('billing.customer.orders');
-        Route::post('/pay-order/{id}', [BillingPaymentController::class, 'payOrder'])->name('billing.customer.pay');
+        Route::get('/customer-payment-page/{order_id}', [BillingPaymentController::class, 'customerPaymentPage'])->name('billing.customer.payment.page');
+        Route::post('/billing/customer/payment', [BillingPaymentController::class, 'payOrder'])->name('billing.customer.payment');
+        Route::get('/billing/invoice/{orderId}', [BillingPaymentController::class, 'generateInvoice'])->name('billing.invoice');
 
-
-
-
-
-
-
-    
 
         
 
+
+
+
+
+
+     
 
 ;
     /*Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
