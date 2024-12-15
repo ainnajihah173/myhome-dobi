@@ -36,12 +36,14 @@ Route::middleware('auth')->group(function () {
 
     /*Manage Pickup & Delivery*/
     Route::resource('delivery', DeliveryController::class);
+    Route::get('/delivery/create/{id}', [DeliveryController::class, 'AssignPickupDriver'])->name('delivery.create');
 
         /* Billing and Payment Page */
         Route::get('/billing-payment', [BillingPaymentController::class, 'index'])->name('billing-payment.index');
         Route::get('/sales-details/{month}/{year}', [BillingPaymentController::class, 'salesDetails'])->name('sales.details');
         Route::get('/customer-orders', [BillingPaymentController::class, 'customerOrders'])->name('billing.customer.orders');
         Route::post('/pay-order/{id}', [BillingPaymentController::class, 'payOrder'])->name('billing.customer.pay');
+        
 
 
 
