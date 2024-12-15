@@ -22,6 +22,7 @@ class Order extends Model
         'order_method',
         'delivery_option',
         'address',
+        'pickup_date',
     ];
 
     // Define relationships
@@ -43,6 +44,11 @@ class Order extends Model
     public function laundryType()
     {
         return $this->belongsTo(LaundryType::class);
+    }
+
+    public function delivery()
+    {
+        return $this->belongsTo(Delivery::class);
     }
 
 }

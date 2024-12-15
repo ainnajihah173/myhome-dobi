@@ -24,6 +24,7 @@ return new class extends Migration {
             $table->enum('order_method', ['Walk in', 'Pickup']);
             $table->boolean('delivery_option')->default(false); //0 -> not delivery, 1 -> delivery
             $table->text('address')->nullable();
+            $table->datetime('pickup_date')->nullable();
             $table->timestamps();
         });
     }
