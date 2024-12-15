@@ -20,7 +20,7 @@ return new class extends Migration {
             $table->integer('quantity')->nullable();
             $table->decimal('total_amount', 10, 2)->nullable();
             $table->decimal('delivery_fee', 10, 2)->nullable();
-            $table->enum('status', ['Pending', 'In Work', 'Pay', 'Complete'])->default('Pending');
+            $table->enum('status', ['Pending','Pickup', 'In Work', 'Pay','Delivery', 'Complete'])->default('Pending');
             $table->enum('order_method', ['Walk in', 'Pickup']);
             $table->boolean('delivery_option')->default(false); //0 -> not delivery, 1 -> delivery
             $table->text('address')->nullable();

@@ -92,7 +92,7 @@
                     </li>
 
                     <li class="side-nav-item">
-                        <a href="{{route('staff.index')}}" class="side-nav-link">
+                        <a href="{{ route('staff.index') }}" class="side-nav-link">
                             <i class="uil-user-plus"></i>
                             <span> Staff Management </span>
                         </a>
@@ -124,12 +124,14 @@
                             <span>Laundry Type & Service </span>
                         </a>
                     </li>
-                    <li class="side-nav-item">
-                        <a href="#" class="side-nav-link">
-                            <i class="uil-wallet"></i>
-                            <span>Bill & Payment </span>
-                        </a>
-                    </li>
+                    @if (auth()->user()->role === 'Admin' || auth()->user()->role === 'Staff')
+                        <li class="side-nav-item">
+                            <a href="{{ route('billing-payment.index') }}" class="side-nav-link">
+                                <i class="uil-wallet"></i>
+                                <span>Billing and Payment</span>
+                            </a>
+                        </li>
+                    @endif
 
                     <li class="side-nav-item">
                         <a href="{{ route('delivery.index') }}" class="side-nav-link">
@@ -139,16 +141,7 @@
                     </li>
                 @endif
 
-                @if(auth()->user()->role === 'Admin' || auth()->user()->role === 'Staff')
-                    <li class="side-nav-item">
-                         <a href="{{ route('billing-payment.index') }}" class="side-nav-link">
-                             <i class="uil-wallet"></i> 
-                             <span>Billing and Payment</span>
-                         </a>
-                    </li>
-                @endif
-
-                @if(auth()->user()->role === 'Customer')
+                @if (auth()->user()->role === 'Customer')
                     <li class="side-nav-item">
                         <a href="{{ route('billing.customer.orders') }}" class="side-nav-link">
                             <i class="uil-shopping-cart-alt"></i>
@@ -160,7 +153,7 @@
 
             </ul>
 
-            
+
 
 
             <!-- End Sidebar -->
