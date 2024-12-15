@@ -141,16 +141,6 @@
                     </li>
                 @endif
 
-                @if (auth()->user()->role === 'Customer')
-                    <li class="side-nav-item">
-                        <a href="{{ route('billing.customer.orders') }}" class="side-nav-link">
-                            <i class="uil-shopping-cart-alt"></i>
-                            <span> My Orders </span>
-                        </a>
-                    </li>
-                @endif
-
-
             </ul>
 
 
