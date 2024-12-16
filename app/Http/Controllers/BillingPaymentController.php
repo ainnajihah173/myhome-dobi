@@ -63,16 +63,28 @@ class BillingPaymentController extends Controller
 
     // Detailed sales report for a specific month and year
     public function salesDetails($month, $year)
-    {
-        // Fetch the sales details for the given month and year
-        $salesDetails = DB::table('orders')
-            ->whereMonth('created_at', $month)
-            ->whereYear('created_at', $year)
-            ->get();
+{
+    // Fetch the sales details with laundry type and service names
+    $salesDetails = DB::table('orders')
+        ->leftJoin('users', 'orders.user_id', '=', 'users.id') // Join users for user name
+        ->leftJoin('guests', 'orders.guest_id', '=', 'guests.id') // Join guests for guest name
+        ->leftJoin('laundry_types', 'orders.laundry_type_id', '=', 'laundry_types.id') // Join laundry types
+        ->leftJoin('laundry_services', 'orders.laundry_service_id', '=', 'laundry_services.id') // Join laundry services
+        ->whereMonth('orders.created_at', $month)
+        ->whereYear('orders.created_at', $year)
+        ->select(
+            'orders.*',
+            DB::raw('COALESCE(users.name, guests.name) as customer_name'),
+            'laundry_types.laundry_name as laundry_type',
+            'laundry_services.service_name as service_name'
+        )
+        ->get();
 
-        // Pass the sales details to the view
-        return view('billing.sales-details', compact('salesDetails', 'month', 'year'));
-    }
+    // Pass the sales details to the view
+    return view('billing.sales-details', compact('salesDetails', 'month', 'year'));
+}
+
+
 
     
 

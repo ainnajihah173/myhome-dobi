@@ -24,13 +24,24 @@
                         @csrf
                         <input type="hidden" name="order_id" value="{{ $order->id }}">
                         
+                        <!-- Payment Method -->
                         <div class="form-group">
                             <label for="payment_method">Choose Payment Method:</label>
                             <select name="payment_method" id="payment_method" class="form-control" required>
                                 <option value="credit_card">Credit Card</option>
                                 <option value="paypal">PayPal</option>
-                                <option value="bank_transfer">Bank Transfer</option>
+                                <option value="bank_transfer">Online Banking</option>
                                 <option value="cash">Cash</option>
+                            </select>
+                        </div>
+
+                        <!-- Bank Selection (Hidden by Default) -->
+                        <div class="form-group" id="bank-selection" style="display: none;">
+                            <label for="bank_name">Choose Your Bank:</label>
+                            <select name="bank_name" id="bank_name" class="form-control">
+                                <option value="bank1">Maybank</option>
+                                <option value="bank2">CIMB Bank</option>
+                                <option value="bank3">RHB Bank</option>
                             </select>
                         </div>
 
@@ -42,4 +53,18 @@
         </div>
     </div>
 </div>
+
+<!-- JavaScript to Toggle Bank Selection -->
+<script>
+    document.getElementById('payment_method').addEventListener('change', function() {
+        const paymentMethod = this.value;
+        const bankSelection = document.getElementById('bank-selection');
+
+        if (paymentMethod === 'bank_transfer') {
+            bankSelection.style.display = 'block';
+        } else {
+            bankSelection.style.display = 'none';
+        }
+    });
+</script>
 @endsection

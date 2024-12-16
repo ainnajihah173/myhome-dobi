@@ -103,6 +103,7 @@
                         </a>
                     </li>
                 @endif
+                
 
                 @if (auth()->user()->role === 'Admin' || auth()->user()->role === 'Staff')
                     <li class="side-nav-item">
@@ -111,6 +112,15 @@
                             <span>Inventory & Stock</span>
                         </a>
                     </li>
+                @endif
+
+                @if (auth()->user()->role === 'Admin' || auth()->user()->role === 'Staff')
+                        <li class="side-nav-item">
+                            <a href="{{ route('billing-payment.index') }}" class="side-nav-link">
+                                <i class="uil-wallet"></i>
+                                <span>Billing and Payment</span>
+                            </a>
+                        </li>
                 @endif
 
                 @if (auth()->user()->role === 'Customer' || auth()->user()->role === 'Staff')
@@ -129,14 +139,6 @@
                             <span>Laundry Type & Service </span>
                         </a>
                     </li>
-                    @if (auth()->user()->role === 'Admin' || auth()->user()->role === 'Staff')
-                        <li class="side-nav-item">
-                            <a href="{{ route('billing-payment.index') }}" class="side-nav-link">
-                                <i class="uil-wallet"></i>
-                                <span>Billing and Payment</span>
-                            </a>
-                        </li>
-                    @endif
 
                     <li class="side-nav-item">
                         <a href="{{ route('delivery.index') }}" class="side-nav-link">
