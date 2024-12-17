@@ -26,8 +26,17 @@ Route::get('/', function () {
 });
 
 Route::middleware('auth')->group(function () {
-    
-    Route::get('/dashboard',[UserController::class,'index'])->name('dashboard');
+
+    Route::get('/dashboard', [UserController::class, 'index'])->name('dashboard');
+    /*Manage Staff*/
+    Route::resource('staff', StaffController::class);
+    //schedule
+    // Route::get('/shift', [StaffController::class, 'schedule'])->name('staff.schedule');
+
+    /*Manage Schedule*/
+    Route::get('/api/staff', [ScheduleController::class, 'getAllStaff']);
+    Route::get('/api/schedules', [ScheduleController::class, 'getSchedules']); // Fetch schedules for calendar
+    Route::resource('schedule', ScheduleController::class);
 
     /*Manage Laundry Type and Services*/
     Route::resource('laundry', LaundryController::class);
@@ -43,26 +52,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/delivery/proof-deliver/{id}', [DeliveryController::class, 'EditProofDeliver'])->name('delivery.editDeliver');
     Route::put('/delivery/proof-deliver/{id}', [DeliveryController::class, 'ProofDeliver'])->name('delivery-proof.deliver');
 
+    /* Billing and Payment Page */
+    Route::get('/billing-payment', [BillingPaymentController::class, 'index'])->name('billing-payment.index');
+    Route::get('/sales-details/{month}/{year}', [BillingPaymentController::class, 'salesDetails'])->name('sales.details');
+    Route::get('/customer-payment-page/{order_id}', [BillingPaymentController::class, 'customerPaymentPage'])->name('billing.customer.payment.page');
+    Route::post('/billing/customer/payment', [BillingPaymentController::class, 'payOrder'])->name('billing.customer.payment');
+    Route::get('/billing/invoice/{orderId}', [BillingPaymentController::class, 'generateInvoice'])->name('billing.invoice');
 
-        /* Billing and Payment Page */
-        Route::get('/billing-payment', [BillingPaymentController::class, 'index'])->name('billing-payment.index');
-        Route::get('/sales-details/{month}/{year}', [BillingPaymentController::class, 'salesDetails'])->name('sales.details');
-        Route::get('/customer-orders', [BillingPaymentController::class, 'customerOrders'])->name('billing.customer.orders');
-        Route::post('/pay-order/{id}', [BillingPaymentController::class, 'payOrder'])->name('billing.customer.pay');
-        
-
-
-
-
-
-
-
-    
-
-        
-
-
-;
     /*Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');*/
