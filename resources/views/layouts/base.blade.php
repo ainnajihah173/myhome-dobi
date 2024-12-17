@@ -108,6 +108,14 @@
                     </li>
                 @endif
 
+                @if (auth()->user()->role === 'Staff')
+                <li class="side-nav-item">
+                    <a href="{{ route('laundry.index') }}" class="side-nav-link">
+                        <i class="uil-cog"></i>
+                        <span>Laundry Type & Service </span>
+                    </a>
+                </li>
+
                 @if (auth()->user()->role === 'Customer' || auth()->user()->role === 'Staff')
                     <li class="side-nav-item">
                         <a href="{{ route('order.index') }}" class="side-nav-link">
@@ -116,14 +124,6 @@
                         </a>
                     </li>
                 @endif
-
-                @if (auth()->user()->role === 'Staff')
-                    <li class="side-nav-item">
-                        <a href="{{ route('laundry.index') }}" class="side-nav-link">
-                            <i class="uil-cog"></i>
-                            <span>Laundry Type & Service </span>
-                        </a>
-                    </li>
                     @if (auth()->user()->role === 'Admin' || auth()->user()->role === 'Staff')
                         <li class="side-nav-item">
                             <a href="{{ route('billing-payment.index') }}" class="side-nav-link">

@@ -1,24 +1,44 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use App\Models\Order;
 use App\Models\User;
 use App\Models\Guest;
-use App\Models\LaundryService;
 use Illuminate\Http\Request;
 use App\Models\Delivery;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rules\Exists;
+use Symfony\Contracts\Service\Attribute\Required;
 
 class DeliveryController extends Controller
 {
-     /**
+    /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $orders = Order::all();
-        $deliverys = Delivery::with('orders')->get();
-        return view('delivery.index', compact('deliverys', 'orders'));
+        $user = auth()->user();
+
+        if ($user->staff->role === 'Manager') {
+            // Managers can view all orders and deliveries
+            $orders = Order::with(['user', 'guest', 'laundryService'])->get();
+            $deliveries = Delivery::all();
+        } else {
+            // Drivers only see their assigned deliveries
+            $pickupDeliveries = Delivery::where('pickup_id', $user->id)->get();
+            $deliveryDeliveries = Delivery::where('deliver_id', $user->id)->get();
+
+            // Combine the results if needed
+            $deliveries = $pickupDeliveries->merge($deliveryDeliveries);
+
+            // Retrieve related orders for the deliveries
+            $orders = Order::whereIn('id', $deliveries->pluck('order_id'))->get();
+        }
+
+        return view('delivery.index', compact('orders', 'deliveries'));
     }
+
 
     /**
      * Show the form for creating a new resource.
@@ -29,7 +49,7 @@ class DeliveryController extends Controller
         $users = User::whereHas('staff', function ($query) {
             $query->where('role', 'Pickup & Delivery Driver');
         })->get();
-        
+
         return view('delivery.create', compact('orders', 'users'));
     }
 
@@ -39,33 +59,173 @@ class DeliveryController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'pickup_id' => 'required|exists:users,id',
+            'order_id' => 'required|exists:orders,id',
+        ]);
+
+        $order = Order::findOrFail($request->order_id);
+        $order->status = 'Pickup';
+        $order->save();
+
+        $delivery = new Delivery();
+
+        $delivery->order_id = $request->order_id;
+        $delivery->pickup_id = $request->pickup_id;
+
+        $delivery->save();
+        return redirect()->route('delivery.index')->with('success', 'Pickup Driver Successfully Assigned.');
     }
 
     /**
      * Display the specified resource.
      */
-    public function show()
+    public function show($id)
     {
-        
+        $order = Order::findOrFail($id);
+        $delivery = Delivery::with(['order', 'pickupDriver', 'deliveryDriver']) // Ensure relationships are loaded
+            ->where('order_id', $id) // Match the delivery to the given order
+            ->first(); // Retrieve a single Delivery model instance
+
+        // $users = User::whereHas('staff', function ($query) {
+        //     $query->where('role', 'Pickup & Delivery Driver');
+        // })->get();
+
+
+        return view('delivery.show', compact('order', 'delivery'));
     }
+
+
+    public function EditProofPickup($id)
+    {
+        // Fetch the order
+        $order = Order::findOrFail($id);
+
+        // Fetch the related delivery, ensuring relationships are loaded
+        $delivery = Delivery::with(['order', 'pickupDriver', 'deliveryDriver']) // Load necessary relationships
+            ->where('order_id', $id) // Match delivery to the given order
+            ->first(); // Retrieve a single Delivery model instance
+
+        if (!$delivery) {
+            return redirect()->route('delivery.index')->with('error', 'Delivery record not found for the specified order.');
+        }
+
+        return view('delivery.proof-pickup', compact('order', 'delivery'));
+    }
+
+    public function ProofPickup(Request $request, $id)
+    {
+        $request->validate([
+            'proof_pickup' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
+
+        // Find the delivery record
+        $delivery = Delivery::findOrFail($id);
+
+        // Update the order status
+        $order = Order::findOrFail($delivery->order_id); // Use delivery's `order_id`
+        $order->status = 'In Work';
+        $order->save();
+
+        // Handle proof pickup file upload if provided
+        if ($request->hasFile('proof_pickup')) {
+            $originalFileName = $request->file('proof_pickup')->getClientOriginalName();
+            $imagePath = $request->file('proof_pickup')->storeAs('public/banner', $originalFileName);
+            $delivery->proof_pickup = $imagePath;
+        }
+
+        // Save the updated delivery record
+        $delivery->save();
+
+        return redirect()->route('delivery.index')->with('success', 'Pickup proof uploaded successfully.');
+    }
+
+
+
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Delivery $delivery)
+    public function edit($id)
     {
-        //
+        $orders = Order::findOrFail($id);
+        $delivery = Delivery::with(['order', 'pickupDriver', 'deliveryDriver']) // Ensure relationships are loaded
+            ->where('order_id', $id) // Match the delivery to the given order
+            ->first(); // Retrieve a single Delivery model instance
+        $users = User::whereHas('staff', function ($query) {
+            $query->where('role', 'Pickup & Delivery Driver');
+        })->get();
+
+        return view('delivery.edit', compact('orders', 'users', 'delivery'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Delivery $delivery)
+    public function update(Request $request, $id)
     {
-        //
+        $request->validate([
+            'deliver_id' => 'required|exists:users,id',
+            'delivery_date' => 'nullable|date|after_or_equal:today',
+        ]);
+
+         // Update the order status to 'In Work'
+         $order = Order::findOrFail($request->order_id);
+         $order->status = 'Delivery';
+         $order->save();
+
+         $delivery = Delivery::findOrFail($id);
+         $delivery->deliver_id = $request->deliver_id;
+         $delivery->delivery_date = $request->delivery_date;
+
+         $delivery->save();
+         return redirect()->route('delivery.index')->with('success', 'Delivery Driver Successfully Assigned.');
     }
 
+
+    public function EditProofDeliver($id)
+    {
+        // Fetch the order
+        $order = Order::findOrFail($id);
+
+        // Fetch the related delivery, ensuring relationships are loaded
+        $delivery = Delivery::with(['order', 'pickupDriver', 'deliveryDriver']) // Load necessary relationships
+            ->where('order_id', $id) // Match delivery to the given order
+            ->first(); // Retrieve a single Delivery model instance
+
+        if (!$delivery) {
+            return redirect()->route('delivery.index')->with('error', 'Delivery record not found for the specified order.');
+        }
+
+        return view('delivery.proof-deliver', compact('order', 'delivery'));
+    }
+
+    public function ProofDeliver(Request $request, $id)
+    {
+        $request->validate([
+            'proof_pickup' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
+
+        // Find the delivery record
+        $delivery = Delivery::findOrFail($id);
+
+        // Update the order status
+        $order = Order::findOrFail($delivery->order_id); // Use delivery's `order_id`
+        $order->status = 'In Work';
+        $order->save();
+
+        // Handle proof pickup file upload if provided
+        if ($request->hasFile('proof_pickup')) {
+            $originalFileName = $request->file('proof_pickup')->getClientOriginalName();
+            $imagePath = $request->file('proof_pickup')->storeAs('public/banner', $originalFileName);
+            $delivery->proof_pickup = $imagePath;
+        }
+
+        // Save the updated delivery record
+        $delivery->save();
+
+        return redirect()->route('delivery.index')->with('success', 'Pickup proof uploaded successfully.');
+    }
     /**
      * Remove the specified resource from storage.
      */

@@ -1,10 +1,20 @@
 @extends('layouts/base')
 @section('content')
-@if (session('success'))
-<div class="alert alert-success">
-    {{ session('success') }}
-</div>
-@endif
+    <br>
+    @if (session('success'))
+        <div class="alert alert-success">
+            {{ session('success') }}
+        </div>
+    @endif
+    @if ($errors->any())
+        <div class="alert alert-danger">
+            <ul>
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
     <div class="container-fluid mt-5">
         <div class="row">
             <div class="col-lg-3">
@@ -71,107 +81,84 @@
                             <thead style="background: #F9FAFB;">
                                 <tr>
                                     <th>No.</th>
-                                    {{-- @if (auth()->user()->role === 'Staff') --}}
-                                        <th>Name</th>
-                                        <th>Service</th>
-                                        <th>Status</th>
-                                    {{-- @endif --}}
+                                    <th>Name</th>
+                                    <th>Service</th>
+                                    <th>Status</th>
                                     <th>Action</th>
                                 </tr>
                             </thead>
                             <tbody>
+
                                 @foreach ($orders as $order)
-                                    <tr>
-                                        <td>{{$loop->index +1}}</td>
-                                        <td>{{ $order->user->name ?? $order->guest->name }}</td>
-                                        <td>{{$order->laundryService->service_name}}</td>
-                                        <td>
-                                            @if ($order->order_method ==="Pickup" ?? $order->status === 'Pending' )
-                                            <span class="badge badge-danger badge-pill">Pending</span>
-                                            @elseif ($order->order_method ==="Pickup" ?? $order->status === 'Pickup' )
-                                            <span class="badge badge-warning badge-pill">Pickup</span>
-                                            @elseif ($order->order_method === 1 ?? $order->status === 'Delivery' )
-                                            <span class="badge badge-warning badge-pill">Delivery</span>
-                                            @elseif ($order->order_method === 1 ?? $order->status === 'Complete' )
-                                            <span class="badge badge-success badge-pill">Complete</span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            <!-- Edit Page-->
-                                            <a href="{{ route('delivery.create', $order->id) }}" class="action-icon-warning"><i
-                                                    class="mdi mdi-square-edit-outline"></i></a>
-                                            <!-- View Page-->
-                                            <a href="{{ route('delivery.create', $deliverys)}}" class="action-icon-success"><i class="mdi mdi-eye"></i></a>
+                                    @if ($order->order_method === 'Pickup' || $order->order_method === 1)
+                                        <tr>
+                                            <td>{{ $loop->index + 1 }}</td>
+                                            <td>{{ $order->user->name ?? $order->guest->name }}</td>
+                                            <td>{{ $order->laundryService->service_name }}</td>
+                                            <td>
+                                                @if ($order->order_method === 'Pickup' && $order->status === 'Assign Pickup')
+                                                    <span class="badge badge-danger badge-pill">Assign Pickup</span>
+                                                @elseif ($order->order_method === 'Pickup' && $order->status === 'Pickup')
+                                                    <span class="badge badge-info badge-pill">Pickup</span>
+                                                @elseif ($order->order_method === 'Pickup' && $order->status === 'In Work')
+                                                    <span class="badge badge-secondary badge-pill">In Work</span>
+                                                @elseif ($order->status === 'Assign Delivery')
+                                                    <span class="badge badge-warning badge-pill">Assign Delivery</span>
+                                                @elseif ($order->status === 'Delivery')
+                                                    <span class="badge badge-info badge-pill">Delivery</span>
+                                                @elseif ($order->order_method === 1 && $order->status === 'Complete')
+                                                    <span class="badge badge-success badge-pill">Complete</span>
+                                                @endif
+                                            </td>
+                                            <td>
+                                                <!-- Manager Assign Pickup Driver-->
+                                                @if (auth()->user()->staff->role === 'Manager' && $order->status === 'Assign Pickup')
+                                                    <!-- Edit Page-->
+                                                    <a href="{{ route('delivery.create', $order->id) }}"
+                                                        class="action-icon-warning"><i
+                                                            class="mdi mdi-square-edit-outline"></i></a>
+                                                @endif
 
-                                            <!-- Proof -->
-                                            <a href="javascript: void(0);" class="action-icon-info" data-toggle="modal"
-                                                data-target="#view-modal"> <i class="mdi mdi-home-map-marker"></i></a>
+                                                <!-- Manager Assign Deliver Driver-->
+                                                @if (auth()->user()->staff->role === 'Manager' && $order->status === 'Assign Delivery')
+                                                    <!-- Edit Page-->
+                                                    <a href="{{ route('delivery.edit', $order->id) }}"
+                                                        class="action-icon-danger"><i
+                                                            class="mdi mdi-square-edit-outline"></i></a>
+                                                @endif
 
-                                            <!-- Delivery-->
-                                            <a href="}" class="action-icon-danger" class="action-icon-info"><i
-                                                    class="mdi mdi-truck"></i></a>
+                                                <!-- View Page-->
+                                                <a href="{{ route('delivery.show', $order->id) }}"
+                                                    class="action-icon-success"><i class="mdi mdi-eye"></i></a>
+
+                                                @if (auth()->user()->staff->role === 'Pickup & Delivery Driver' &&
+                                                        $order->order_method === 'Pickup' &&
+                                                        $order->status === 'Pickup')
+                                                    <!-- Proof Pickup -->
+                                                    <a href="{{ route('delivery.editPickup', $order->id) }}"
+                                                        class="action-icon-info"><i class="mdi mdi-home-map-marker"></i></a>
+                                                @endif
+
+                                                @if (auth()->user()->staff->role === 'Pickup & Delivery Driver' &&
+                                                        $order->delivery_option === 1 &&
+                                                        $order->status === 'Delivery')
+                                                    <!-- Proof Pickup -->
+                                                    <a href="{{ route('delivery.editDeliver', $order->id) }}"
+                                                        class="action-icon-warning"><i class="mdi mdi-home-map-marker"></i></a>
+                                                @endif
 
 
-                                    </tr>
-                                    <!-- View modal -->
-                                    <div id="view-modal" class="modal fade" tabindex="-1" role="dialog"
-                                        aria-hidden="true">
-                                        <div class="modal-dialog ">
-                                            <div class="modal-content">
-                                                <div class="modal-header">
-                                                    <h4 class="modal-title" id="viewModalLabel">Proof of Pickup</h4>
-                                                    <button type="button" class="close" data-dismiss="modal"
-                                                        aria-hidden="true">×</button>
-                                                </div>
-                                                <div class="modal-body">
-                                                    <form>
-                                                        <div class="form-row">
-                                                            <div class="form-group col-md-6">
-                                                                <label for="inputEmail4" class="col-form-label">Name</label>
-                                                                <input type="text" class="form-control" id="inputEmail4"
-                                                                    placeholder="Ali Bin Abu" readonly="">
-                                                            </div>
-                                                            <div class="form-group col-md-6 ">
-                                                                <label for="inputEmail4" class="col-form-label">Phone
-                                                                    Number</label>
-                                                                <input type="text" class="form-control" id="inputEmail4"
-                                                                    placeholder="XXXXXXX" readonly="">
-                                                            </div>
-                                                        </div>
-                                                        <div class="form-group">
-                                                            <label for="example-textarea">Pickup Address</label>
-                                                            <textarea class="form-control" id="example-textarea" rows="5" placeholder="Mukim 123, Sungai Tawar"
-                                                                readonly=""></textarea>
-                                                        </div>
-                                                        <div class="form-row">
-                                                            <div class="form-group col-md-6">
-                                                                <label for="inputState" class="col-form-label">Pickup
-                                                                    Date</label>
-                                                                <input type="date" class="form-control"
-                                                                    id="inputEmail4" readonly="">
-                                                            </div>
-                                                            <div class="form-group col-md-6">
-                                                                <label for="inputState" class="col-form-label">Pickup
-                                                                    Time</label>
-                                                                <input type="time" class="form-control"
-                                                                    id="inputEmail4" readonly="">
-                                                            </div>
-                                                        </div>
-                                                        <div class="form-group">
-                                                            <label for="example-textarea">Upload Proof</label>
-                                                            <input type="file" name="pdf" class="form-control"
-                                                                id="pdf" accept=".pdf">
-                                                        </div>
-                                                    </form>
-                                                </div>
-                                                <div class="modal-footer">
-                                                    <button type="button" class="btn btn-primary"
-                                                        data-dismiss="modal">Tutup</button>
-                                                </div>
-                                            </div><!-- /.modal-content -->
-                                        </div><!-- /.modal-dialog -->
-                                    </div><!-- /.modal -->
+                                                {{-- @if (auth()->user()->staff->role === 'Manager' && $order->status === 'Delivery')
+                                                <!-- Delivery-->
+                                                <a href="}" class="action-icon-danger" class="action-icon-info"><i
+                                                        class="mdi mdi-truck"></i></a>
+                                            @endif --}}
+                                            </td>
+
+                                        </tr>
+                                    @endif
                                 @endforeach
+
                             </tbody>
                         </table>
                     </div> <!-- end card-body-->

@@ -48,7 +48,8 @@ class Order extends Model
 
     public function delivery()
     {
-        return $this->belongsTo(Delivery::class);
+        return $this->hasMany(Delivery::class);
     }
+ 
 
 }
