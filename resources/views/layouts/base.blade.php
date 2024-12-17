@@ -97,13 +97,12 @@
                     </li>
 
                     <li class="side-nav-item">
-                        <a href="{{ route('staff.index') }}" class="side-nav-link">
+                        <a href="{{route('staff.index')}}" class="side-nav-link">
                             <i class="uil-user-plus"></i>
                             <span> Staff Management </span>
                         </a>
                     </li>
                 @endif
-                
 
                 @if (auth()->user()->role === 'Admin' || auth()->user()->role === 'Staff')
                     <li class="side-nav-item">
@@ -113,23 +112,6 @@
                         </a>
                     </li>
                 @endif
-
-                @if (auth()->user()->role === 'Admin' || auth()->user()->role === 'Staff')
-                        <li class="side-nav-item">
-                            <a href="{{ route('billing-payment.index') }}" class="side-nav-link">
-                                <i class="uil-wallet"></i>
-                                <span>Billing and Payment</span>
-                            </a>
-                        </li>
-                @endif
-
-                @if (auth()->user()->role === 'Staff')
-                <li class="side-nav-item">
-                    <a href="{{ route('laundry.index') }}" class="side-nav-link">
-                        <i class="uil-cog"></i>
-                        <span>Laundry Type & Service </span>
-                    </a>
-                </li>
 
                 @if (auth()->user()->role === 'Customer' || auth()->user()->role === 'Staff')
                     <li class="side-nav-item">
@@ -147,14 +129,12 @@
                             <span>Laundry Type & Service </span>
                         </a>
                     </li>
-                    @if (auth()->user()->role === 'Admin' || auth()->user()->role === 'Staff')
-                        <li class="side-nav-item">
-                            <a href="{{ route('billing-payment.index') }}" class="side-nav-link">
-                                <i class="uil-wallet"></i>
-                                <span>Billing and Payment</span>
-                            </a>
-                        </li>
-                    @endif
+                    <li class="side-nav-item">
+                        <a href="#" class="side-nav-link">
+                            <i class="uil-wallet"></i>
+                            <span>Bill & Payment </span>
+                        </a>
+                    </li>
 
                     <li class="side-nav-item">
                         <a href="{{ route('delivery.index') }}" class="side-nav-link">
@@ -164,9 +144,18 @@
                     </li>
                 @endif
 
+                @if(auth()->user()->role === 'Admin' || auth()->user()->role === 'Staff')
+                    <li class="side-nav-item">
+                         <a href="{{ route('billing-payment.index') }}" class="side-nav-link">
+                             <i class="uil-wallet"></i> 
+                             <span>Billing and Payment</span>
+                         </a>
+                    </li>
+                @endif
+
             </ul>
 
-
+            
 
 
             <!-- End Sidebar -->
