@@ -76,7 +76,7 @@
                                                 @endif
                                             @elseif($orders->status === 'Pay' || auth()->user()->role === 'Staff' && $orders->status === 'Complete')
                                                 <!-- Pay -->
-                                                <a href="" class="action-icon-secondary"><i
+                                                <a href="{{ route('billing.customer.payment.page', $orders->id) }}" class="side-nav-link action-icon-secondary" class="side-nav-link" class="action-icon-secondary"><i
                                                     class="mdi mdi-credit-card"></i></a>
                                             @endif
                                         </td>

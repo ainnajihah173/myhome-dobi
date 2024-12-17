@@ -7,6 +7,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\DeliveryController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BillingPaymentController;
+use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\StaffController;
 
 /*
@@ -25,8 +26,8 @@ Route::get('/', function () {
 });
 
 Route::middleware('auth')->group(function () {
-
-    Route::get('/dashboard', [UserController::class, 'index'])->name('dashboard');
+    
+    Route::get('/dashboard',[UserController::class,'index'])->name('dashboard');
 
     /*Manage Laundry Type and Services*/
     Route::resource('laundry', LaundryController::class);
@@ -43,11 +44,25 @@ Route::middleware('auth')->group(function () {
     Route::put('/delivery/proof-deliver/{id}', [DeliveryController::class, 'ProofDeliver'])->name('delivery-proof.deliver');
 
 
-    /* Billing and Payment Page */
-    Route::get('/billing-payment', [BillingPaymentController::class, 'index'])->name('billing-payment.index');
-    Route::get('/sales-details/{month}/{year}', [BillingPaymentController::class, 'salesDetails'])->name('sales.details');
-    Route::get('/customer-orders', [BillingPaymentController::class, 'customerOrders'])->name('billing.customer.orders');
-    Route::post('/pay-order/{id}', [BillingPaymentController::class, 'payOrder'])->name('billing.customer.pay');;
+        /* Billing and Payment Page */
+        Route::get('/billing-payment', [BillingPaymentController::class, 'index'])->name('billing-payment.index');
+        Route::get('/sales-details/{month}/{year}', [BillingPaymentController::class, 'salesDetails'])->name('sales.details');
+        Route::get('/customer-orders', [BillingPaymentController::class, 'customerOrders'])->name('billing.customer.orders');
+        Route::post('/pay-order/{id}', [BillingPaymentController::class, 'payOrder'])->name('billing.customer.pay');
+        
+
+
+
+
+
+
+
+    
+
+        
+
+
+;
     /*Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');*/

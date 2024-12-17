@@ -13,8 +13,8 @@ class StaffController extends Controller
      */
     public function index()
     {
-        // Fetch staff with their user details, paginated
-        $staffs = Staff::with('user')->paginate(5); // Display 5 records per page
+        // Fetch all staff with their user details
+        $staffs = Staff::with('user')->get();
 
         // Return the view with the staff data
         return view('staff.index', compact('staffs'));
@@ -65,7 +65,10 @@ class StaffController extends Controller
         return redirect()->route('staff.index')->with('success', 'Staff created successfully.');
     }
 
-
+    // public function schedule()
+    // {
+    //     return view('staff.schedule');
+    // }
 
 
     /**
