@@ -24,5 +24,6 @@ class DatabaseSeeder extends Seeder
         $this->call(LaundryServiceSeeder::class);
         $this->call(OrderSeeder::class);
         $this->call(StaffSeeder::class);
+        $this->call(ScheduleSeeder::class);
     }
 }

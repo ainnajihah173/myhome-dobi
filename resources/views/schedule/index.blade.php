@@ -25,7 +25,7 @@
                 <div class="modal fade" id="event-modal" tabindex="-1">
                     <div class="modal-dialog">
                         <div class="modal-content">
-                            <form id="assign-staff-form" action="{{ route('schedule.store') }}" method="POST" enctype="multipart/form-data">
+                            <form id="assign-staff-form" method="POST" enctype="multipart/form-data">
                                 @csrf <!-- Laravel CSRF token for security -->
                                 <div class="modal-header py-3 px-4 border-bottom-0 d-block">
                                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
@@ -65,12 +65,12 @@
                                                 <div class="form-group">
                                                     <label for="event-category">Category</label>
                                                     <select class="form-control" name="category" id="event-category" required>
-                                                        <option value="bg-danger">Danger</option>
-                                                        <option value="bg-success">Success</option>
-                                                        <option value="bg-primary">Primary</option>
-                                                        <option value="bg-info">Info</option>
-                                                        <option value="bg-dark">Dark</option>
-                                                        <option value="bg-warning">Warning</option>
+                                                        {{-- <option value="bg-danger">Danger</option> --}}
+                                                        <option value="bg-success">Green - Dry Cleaner</option>
+                                                        <option value="bg-primary">Purple - Pickup & Delivery Driver</option>
+                                                        <option value="bg-info">Blue - Washer/Folder</option>
+                                                        <option value="bg-dark">Black - Presser/Ironing</option>
+                                                        <option value="bg-warning">Yellow - Dryer</option>
                                                     </select>
                                                 </div>
                                             </div>
@@ -126,7 +126,7 @@
                 //     left: 'prev,next today', // Navigation buttons
                 //     center: 'title', // Calendar title
                 // },
-                editable: false, // Prevent event dragging
+                editable: true, // Allow event dragging
                 selectable: true, // Allow selection of time slots
                 events: '/api/schedules', // Fetch events from the backend
                 eventOverlap: true, // Allow overlapping events
@@ -171,11 +171,18 @@
 
             // Open modal function
             function openModal(start = null, end = null, eventId = null) {
+                const actionUrl = eventId
+                    ? `/schedule/${eventId}`
+                    : `/schedule`;
+                assignStaffForm.action = actionUrl;
+                document.querySelector('input[name="_method"]').value = eventId ? 'PUT' : 'POST';
+
+                document.getElementById('event-id').value = eventId || '';
+                document.getElementById('event-date').value = start ? start.split('T')[0] : '';
+                document.getElementById('event-start-time').value = start ? start.split('T')[1] : '09:00';
+                document.getElementById('event-end-time').value = end ? end.split('T')[1] : '18:00';
+
                 $('#event-modal').modal('show');
-                $('#event-id').val(eventId || ''); // Hidden input for event ID
-                $('#event-date').val(start ? start.split('T')[0] : ''); // Pre-fill date
-                $('#event-start-time').val(start ? start.split('T')[1] : '09:00');
-                $('#event-end-time').val(end ? end.split('T')[1] : '18:00');
             }
 
             // Dynamically update role based on selected staff
@@ -197,6 +204,7 @@
 
     </script>
 
+    {{-- Schedule can't be add and update only drag --}}
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const saveButton = document.querySelector('#assign-staff-form button[type="submit"]');
@@ -226,7 +234,9 @@
                 endTimeInput.value = `${eventDate} ${endTime}`;
 
                 // Submit the form programmatically
-                document.getElementById('assign-staff-form').submit(); // Submit the form
+                // document.getElementById('assign-staff-form').submit(); // Submit the form
+                assignStaffForm.submit();
+                
             });
         });
 

@@ -68,15 +68,16 @@ class ScheduleController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        $validatedData = $request->validate([
-            'staff_id'   => 'required|exists:staff,id',
-            'category'   => 'required|string',
+        $data = $request->validate([
+            'staff_id' => 'required|exists:staff,id',
             'start_time' => 'required|date',
-            'end_time'   => 'required|date|after:start_time',
+            'end_time' => 'required|date|after:start_time',
+            'category' => 'required|string',
         ]);
-
-        Schedule::create($validatedData);
-
+    
+        // Save the schedule in the database
+        Schedule::create($data);
+        
         // Redirect to the index page with a success message
         return redirect()->route('schedule.index')->with('success', 'Schedule created successfully!');    
     }
@@ -103,7 +104,19 @@ class ScheduleController extends Controller
      */
     public function update(Request $request, Schedule $schedule)
     {
-        //
+
+        $data = $request->validate([
+            'staff_id' => 'required|exists:staff,id',
+            'start_time' => 'required|date',
+            'end_time' => 'required|date|after:start_time',
+            'category' => 'required|string',
+        ]);
+
+        // Update the schedule
+        $schedule->update($data);
+
+        // Redirect to the index page with a success message
+        return redirect()->route('schedule.index')->with('success', 'Schedule updated successfully!');
     }
 
     /**
@@ -111,10 +124,10 @@ class ScheduleController extends Controller
      */
 
      public function destroy($id)
-     {
-         $schedule = Schedule::findOrFail($id);
-         $schedule->delete();
- 
-         return redirect()->back()->with('success', 'Schedule deleted successfully!');
-     }
+    {
+        $schedule = Schedule::findOrFail($id);
+        $schedule->delete();
+
+        return redirect()->route('schedule.index')->with('success', 'Schedule deleted successfully!');
+    }
 }
