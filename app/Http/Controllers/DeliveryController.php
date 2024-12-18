@@ -45,6 +45,7 @@ class DeliveryController extends Controller
      */
     public function AssignPickupDriver($id)
     {
+
         $orders = Order::findOrFail($id);
         $users = User::whereHas('staff', function ($query) {
             $query->where('role', 'Pickup & Delivery Driver');
@@ -132,6 +133,8 @@ class DeliveryController extends Controller
             $originalFileName = $request->file('proof_pickup')->getClientOriginalName();
             $imagePath = $request->file('proof_pickup')->storeAs('public/banner', $originalFileName);
             $delivery->proof_pickup = $imagePath;
+        } else {
+            return redirect()->back()->withErrors('You must confirm proof of pickup before marking the order as Complete Pickup.');
         }
 
         // Save the updated delivery record
@@ -164,22 +167,27 @@ class DeliveryController extends Controller
      */
     public function update(Request $request, $id)
     {
+        // Retrieve the pickup date from the order
+        $pickupDate = Order::findOrFail($request->order_id)->pickup_date;
+
         $request->validate([
             'deliver_id' => 'required|exists:users,id',
-            'delivery_date' => 'nullable|date|after_or_equal:today',
+            'delivery_date' => 'nullable|date|after_or_equal:' . $pickupDate . '|after_or_equal:' . now(),
+        ], [
+            'delivery_date.after_or_equal' => 'The delivery date cannot be earlier than the pickup date or a past date.',
         ]);
 
-         // Update the order status to 'In Work'
-         $order = Order::findOrFail($request->order_id);
-         $order->status = 'Delivery';
-         $order->save();
+        // Update the order status to 'In Work'
+        $order = Order::findOrFail($request->order_id);
+        $order->status = 'Delivery';
+        $order->save();
 
-         $delivery = Delivery::findOrFail($id);
-         $delivery->deliver_id = $request->deliver_id;
-         $delivery->delivery_date = $request->delivery_date;
+        $delivery = Delivery::findOrFail($id);
+        $delivery->deliver_id = $request->deliver_id;
+        $delivery->delivery_date = $request->delivery_date;
 
-         $delivery->save();
-         return redirect()->route('delivery.index')->with('success', 'Delivery Driver Successfully Assigned.');
+        $delivery->save();
+        return redirect()->route('delivery.index')->with('success', 'Delivery Driver Successfully Assigned.');
     }
 
 

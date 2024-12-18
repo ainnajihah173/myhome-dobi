@@ -92,10 +92,11 @@
                                             value="{{ $delivery->pickupDriver->name }}" readonly>
                                     </div>
                                 </div>
+
                                 <div class="form-group col-md-12">
-                                    <label for="example-textarea">Upload Proof Pickup</label>
-                                    <input type="file" name="proof_pickup" class="form-control"
-                                        id="proof-file-{{ $order->id }}" accept="image/">
+                                    <label for="proof-file-{{ $order->id }}">Upload Proof Pickup</label>
+                                    <input type="file" name="proof_pickup" class="form-control" id="proof-file-{{ $order->id }}"
+                                        accept="image/jpeg,image/png" required>
                                 </div>
 
                                 @if ($delivery->order->delivery_option === 1 && $delivery->order->status === 'Delivery')
@@ -127,13 +128,25 @@
                             </div><!-- end row-->
                             <div class="text-center mt-2">
                                 <button type="button" onclick="history.back()" class="btn btn-light mr-3">Back</button>
-                                <button type="submit" class="btn btn-info">Save</button>
+                               <button id="confirm-button-{{ $order->id }}" class="btn btn-info" disabled>Confirm Proof of Pickup</button>
                             </div>
                         </form>
+                        
                     </div> <!-- end card-body-->
                 </div><!-- end card-->
             </div> <!-- end col -->
         </div> <!-- end row -->
-
     </div>
+    <script>
+        document.getElementById('proof-file-{{ $order->id }}').addEventListener('change', function() {
+            const fileInput = this;
+            const confirmButton = document.getElementById('confirm-button-{{ $order->id }}');
+        
+            if (fileInput.files.length > 0) {
+                confirmButton.disabled = false; // Enable button if file is selected
+            } else {
+                confirmButton.disabled = true; // Keep button disabled
+            }
+        });
+        </script>
 @endsection

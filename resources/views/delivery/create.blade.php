@@ -8,15 +8,6 @@
             <div class="col-12">
                 <div class="card">
                     <div class="card-body">
-                        @if ($errors->any())
-                            <div class="alert alert-danger">
-                                <ul>
-                                    @foreach ($errors->all() as $error)
-                                        <li>{{ $error }}</li>
-                                    @endforeach
-                                </ul>
-                            </div>
-                        @endif
                         <h4 class="">Pickup Driver</h4>
                         <p class="text-muted font-13 mb-4">
                             Please Fill the Form Below
@@ -104,7 +95,7 @@
                             </div><!-- end row-->
                             <div class="text-center mt-2">
                                 <button type="button" onclick="history.back()" class="btn btn-light mr-3">Back</button>
-                                <button type="submit" class="btn btn-info">Save</button>
+                                <button type="submit" class="btn btn-info"@if(!session('schedule_viewed')) disabled @endif>Assign Pickup Driver</button>
                             </div>
                         </form>
                     </div> <!-- end card-body-->

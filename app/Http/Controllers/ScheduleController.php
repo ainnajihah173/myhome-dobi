@@ -13,6 +13,8 @@ class ScheduleController extends Controller
      */
     public function index()
     {
+        // Set the session flag when the schedule page is viewed
+        session(['schedule_viewed' => true]);
         $staff = Staff::with('user')->get(); // Fetch all staff with their associated user
         return view('schedule.index', compact('staff'));
     }
@@ -74,12 +76,12 @@ class ScheduleController extends Controller
             'end_time' => 'required|date|after:start_time',
             'category' => 'required|string',
         ]);
-    
+
         // Save the schedule in the database
         Schedule::create($data);
-        
+
         // Redirect to the index page with a success message
-        return redirect()->route('schedule.index')->with('success', 'Schedule created successfully!');    
+        return redirect()->route('schedule.index')->with('success', 'Schedule created successfully!');
     }
 
 
@@ -123,7 +125,7 @@ class ScheduleController extends Controller
      * Remove the specified resource from storage.
      */
 
-     public function destroy($id)
+    public function destroy($id)
     {
         $schedule = Schedule::findOrFail($id);
         $schedule->delete();

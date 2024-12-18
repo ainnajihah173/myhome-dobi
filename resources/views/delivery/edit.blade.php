@@ -8,15 +8,6 @@
             <div class="col-12">
                 <div class="card">
                     <div class="card-body">
-                        @if ($errors->any())
-                            <div class="alert alert-danger">
-                                <ul>
-                                    @foreach ($errors->all() as $error)
-                                        <li>{{ $error }}</li>
-                                    @endforeach
-                                </ul>
-                            </div>
-                        @endif
                         <h4 class="">Delivery Driver</h4>
                         <p class="text-muted font-13 mb-4">
                             Please Fill the Form Below
@@ -31,7 +22,7 @@
                                     <div class="form-group mb-3">
                                         <label for="kiosk-number">Service</label>
                                         <input type="text" name="laundry_services" class="form-control"
-                                        value="{{ $orders->laundryService->service_name}}" readonly>
+                                            value="{{ $orders->laundryService->service_name }}" readonly>
                                     </div>
                                 </div>
                                 <div class="col-lg-6">
@@ -60,7 +51,8 @@
                                     <div class="form-group mb-3">
                                         <label for="kiosk-number">Order Method</label>
                                         <input type="text" name="delivery_option" class="form-control"
-                                        value="{{ $orders->delivery_option == 1 ? 'Delivery' : 'Self Collect' }}" readonly>
+                                            value="{{ $orders->delivery_option == 1 ? 'Delivery' : 'Self Collect' }}"
+                                            readonly>
                                     </div>
                                 </div>
                                 <div class="col-lg-6">
@@ -76,10 +68,14 @@
                                     </div>
                                 </div>
 
-                                 <div class="col-lg-12">
+                                <div class="col-lg-12">
                                     <div class="form-group mb-3">
                                         <label for="delivery_date">Delivery Date</label>
-                                        <input type="datetime-local" name="delivery_date" id="delivery_date" class="form-control" >
+                                        {{-- <input type="datetime-local" name="delivery_date" id="delivery_date"
+                                            class="form-control"> --}}
+                                        <input type="datetime-local" id="delivery_date" name="delivery_date"
+                                            class="form-control" oninput="validateDeliveryDate()">
+                                        <div id="delivery-error" style="color: red; display: none;"></div>
                                     </div>
                                 </div>
                                 <div class="col-lg-12">
@@ -97,7 +93,7 @@
                             </div><!-- end row-->
                             <div class="text-center mt-2">
                                 <button type="button" onclick="history.back()" class="btn btn-light mr-3">Back</button>
-                                <button type="submit" class="btn btn-info">Save</button>
+                                <button type="submit" class="btn btn-info">Assign Delivery Driver</button>
                             </div>
                         </form>
                     </div> <!-- end card-body-->
@@ -106,4 +102,26 @@
         </div> <!-- end row -->
 
     </div>
+    <script>
+        function validateDeliveryDate() {
+            const deliveryDate = new Date(document.getElementById('delivery_date').value);
+            const updatedAt = new Date("{{ $orders->updated_at }}"); // Assuming $order->updated_at is passed to the view
+            const errorMessage = document.getElementById('delivery-error');
+            const submitButton = document.getElementById('submit-button');
+
+            // Check if the delivery date is earlier than pickup date or if it's earlier than updated_at
+            if (deliveryDate < updatedAt) {
+                errorMessage.innerHTML = "The delivery date cannot be earlier than the last update.";
+                errorMessage.style.display = "block";
+                submitButton.disabled = true;
+            } else if (deliveryDate < new Date()) {
+                errorMessage.innerHTML = "The delivery date must be a future date.";
+                errorMessage.style.display = "block";
+                submitButton.disabled = true;
+            } else {
+                errorMessage.style.display = "none";
+                submitButton.disabled = false;
+            }
+        }
+    </script>
 @endsection
