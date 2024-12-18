@@ -8,6 +8,7 @@ use App\Models\Guest;
 use App\Models\LaundryService;
 use App\Models\LaundryType;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
 {
@@ -66,40 +67,53 @@ class OrderController extends Controller
             'contact_number' => 'required_if:guest,true|string|max:15',
         ]);*/
 
-        // Create a new order instance
-        $order = new Order();
+    // Fetch the price of the selected laundry service
+    $service = DB::table('laundry_services')
+        ->where('id', $request->laundry_service_id)
+        ->first();
 
-        if (auth()->check() && auth()->user()->role === 'Customer') {
-            // Registered user
-            $order->user_id = auth()->user()->id;
-        } else {
-            // Guest user: check if guest already exists by contact number
-            $guest = Guest::firstOrCreate(
-                ['contact_number' => $request->contact_number],
-                [
-                    'name' => $request->name,
-                    'email' => $request->email,
-                ]
-            );
-
-            // Assign the guest ID to the order
-            $order->guest_id = $guest->id;
-        }
-
-        // Common attributes for both registered users and guests
-        $order->order_method = $request->order_method;
-        $order->laundry_type_id = $request->laundry_type_id;
-        $order->laundry_service_id = $request->laundry_service_id;
-        $order->remark = $request->remark;
-        $order->delivery_option = $request->delivery_option ?? false;
-        $order->address = $request->delivery_option ? $request->address : null;
-
-        // Save the order to the database
-        $order->save();
-
-        // Redirect with a success message
-        return redirect()->route('order.index')->with('success', 'Order created successfully!');
+    if (!$service) {
+        return back()->withErrors('Invalid laundry service selected.');
     }
+
+    // Calculate delivery fee
+    $deliveryFee = $request->delivery_option ? 10.00 : 0.00; // RM 10 for delivery
+
+    // Calculate total amount
+    $quantity = $request->quantity;
+    $totalAmount = ($service->price * $quantity) + $deliveryFee;
+
+    // Create a new order instance
+    $order = new Order();
+
+    if (auth()->check() && auth()->user()->role === 'Customer') {
+        $order->user_id = auth()->user()->id; // Registered user
+    } else {
+        // Guest user logic
+        $guest = Guest::firstOrCreate(
+            ['contact_number' => $request->contact_number],
+            ['name' => $request->name, 'email' => $request->email]
+        );
+        $order->guest_id = $guest->id;
+    }
+
+    // Set order attributes
+    $order->order_method = $request->order_method;
+    $order->laundry_type_id = $request->laundry_type_id;
+    $order->laundry_service_id = $request->laundry_service_id;
+    $order->quantity = $quantity;
+    $order->delivery_fee = $deliveryFee;
+    $order->total_amount = $totalAmount;
+    $order->remark = $request->remark;
+    $order->delivery_option = $request->delivery_option ?? false;
+    $order->address = $request->delivery_option ? $request->address : null;
+
+    // Save the order
+    $order->save();
+
+    // Redirect with success message
+    return redirect()->route('order.index')->with('success', 'Order created successfully!');
+}
 
 
     /**
@@ -160,4 +174,27 @@ class OrderController extends Controller
     {
         //
     }
+
+    public function updateStatus($id)
+{
+    // Find the order
+    $order = Order::find($id);
+
+    if (!$order) {
+        return redirect()->route('order.index')->withErrors('Order not found.');
+    }
+
+    // Check the current status
+    if ($order->status === 'Pending' || $order->status === 'In Work') {
+        // Update the status to "Pay"
+        $order->status = 'Pay';
+        $order->save();
+
+        return redirect()->route('order.index')->with('success', 'Order status updated to Pay.');
+    }
+
+    // Return with an error if the status cannot be updated
+    return redirect()->route('order.index')->withErrors('Order status cannot be updated.');
+}
+
 }

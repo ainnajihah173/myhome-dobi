@@ -65,6 +65,18 @@
                                             <!-- View Page-->
                                             <a href="{{ route('order.show', $orders->id )}}" class="action-icon-info"><i class="mdi mdi-eye"></i></a>
 
+
+                                            @if ($orders->status === 'Pending' || $orders->status === 'In Work')
+                                                @if (auth()->user()->role === 'Staff')
+                                                    <!-- Update to Pay -->
+                                                    <form method="POST" action="{{ route('order.update-status', $orders->id) }}" style="display: inline;">
+                                                        @csrf
+                                                        @method('PATCH')
+                                                        <button type="submit" class="btn btn-warning btn-sm">Mark as Pay</button>
+                                                    </form>
+                                                @endif
+                                            @endif
+                                            
                                             @if ($orders->status === 'Pending')
                                                 <!-- Edit Page-->
                                                 <a href="{{ route('order.edit', $orders->id )}}" class="action-icon-success"><i
