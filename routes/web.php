@@ -43,6 +43,8 @@ Route::middleware('auth')->group(function () {
 
     /*Manage Order*/
     Route::resource('order', OrderController::class);
+    Route::patch('/order/{id}/update-status', [OrderController::class, 'updateStatus'])->name('order.update-status');
+
 
     /*Manage Pickup & Delivery*/
     Route::resource('delivery', DeliveryController::class);
