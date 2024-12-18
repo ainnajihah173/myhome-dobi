@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class BillingPaymentController extends Controller
 {
@@ -43,15 +44,17 @@ class BillingPaymentController extends Controller
     
         // Calculate sales list for table
         $sales = DB::table('orders')
-            ->select(
-                DB::raw('CAST(MONTH(created_at) AS UNSIGNED) as month'),
-                DB::raw('YEAR(created_at) as year'),
-                DB::raw('SUM(total_amount) as total_sales')
-            )
-            ->groupBy('month', 'year')
-            ->orderBy('year', 'desc')
-            ->orderBy('month', 'asc')
-            ->get();
+    ->select(
+        DB::raw('CAST(MONTH(created_at) AS UNSIGNED) as month'),
+        DB::raw('YEAR(created_at) as year'),
+        DB::raw('SUM(total_amount) as total_sales')
+    )
+    ->whereNotNull('created_at') // Exclude rows with NULL created_at
+    ->groupBy('month', 'year')
+    ->orderBy('year', 'desc')
+    ->orderBy('month', 'asc')
+    ->get();
+
     
         // Pass data to the view
         return view('billing.billing-payment', compact('salesSummary', 'salesData', 'sales'));
@@ -60,16 +63,125 @@ class BillingPaymentController extends Controller
 
     // Detailed sales report for a specific month and year
     public function salesDetails($month, $year)
-    {
-        // Fetch the sales details for the given month and year
-        $salesDetails = DB::table('orders')
-            ->whereMonth('created_at', $month)
-            ->whereYear('created_at', $year)
-            ->get();
+{
+    // Fetch the sales details with laundry type and service names
+    $salesDetails = DB::table('orders')
+        ->leftJoin('users', 'orders.user_id', '=', 'users.id') // Join users for user name
+        ->leftJoin('guests', 'orders.guest_id', '=', 'guests.id') // Join guests for guest name
+        ->leftJoin('laundry_types', 'orders.laundry_type_id', '=', 'laundry_types.id') // Join laundry types
+        ->leftJoin('laundry_services', 'orders.laundry_service_id', '=', 'laundry_services.id') // Join laundry services
+        ->whereMonth('orders.created_at', $month)
+        ->whereYear('orders.created_at', $year)
+        ->select(
+            'orders.*',
+            DB::raw('COALESCE(users.name, guests.name) as customer_name'),
+            'laundry_types.laundry_name as laundry_type',
+            'laundry_services.service_name as service_name'
+        )
+        ->get();
 
-        // Pass the sales details to the view
-        return view('billing.sales-details', compact('salesDetails', 'month', 'year'));
+    // Pass the sales details to the view
+    return view('billing.sales-details', compact('salesDetails', 'month', 'year'));
+}
+
+
+
+    
+
+    public function payOrder(Request $request)
+    {
+        $validated = $request->validate([
+            'order_id' => 'required|exists:orders,id',
+            'payment_method' => 'required|string',
+        ]);
+    
+        $customerId = auth()->user()->id;
+    
+        // Fetch the order and ensure it belongs to the logged-in customer
+        $order = DB::table('orders')
+            ->where('id', $validated['order_id'])
+            ->where('user_id', $customerId)
+            ->first();
+    
+        if (!$order || $order->status !== 'Pay') {
+            return redirect()->route('order.index')->withErrors('Invalid order or payment is not required.');
+        }
+    
+        // Update the order status to 'Complete' and record the payment method
+        DB::table('orders')
+            ->where('id', $validated['order_id'])
+            ->update([
+                'status' => 'Complete',
+                'updated_at' => now(),
+            ]);
+    
+        return redirect()->route('order.index')->with('success', 'Payment successful! Your order is now marked as completed.');
     }
+    
+
+
+    public function customerPaymentPage($order_id)
+    {
+        $customerId = auth()->user()->id; // Get the logged-in customer's ID
+    
+        // Fetch the order along with its laundry type, service, and quantity
+        $order = DB::table('orders')
+            ->join('laundry_types', 'orders.laundry_type_id', '=', 'laundry_types.id')
+            ->join('laundry_services', 'orders.laundry_service_id', '=', 'laundry_services.id')
+            ->where('orders.id', $order_id)
+            ->where('orders.user_id', $customerId)
+            ->select(
+                'orders.*',
+                'laundry_types.laundry_name as laundry_type_name',
+                'laundry_services.service_name as service_name',
+                'orders.quantity'
+            )
+            ->first();
+    
+        if (!$order || $order->status !== 'Pay') {
+            return redirect()->route('order.index')->withErrors('Order not found or not eligible for payment.');
+        }
+    
+        return view('billing.customer-payment', compact('order'));
+    }
+    
+    
+   
+
+    public function generateInvoice($orderId)
+    {
+        $order = DB::table('orders')
+            ->where('id', $orderId)
+            ->first();
+    
+        if (!$order) {
+            return redirect()->back()->with('error', 'Order not found.');
+        }
+    
+        if ($order->status !== 'Complete') {
+            return redirect()->back()->with('error', 'Invoice is only available for completed orders.');
+        }
+    
+        // Prepare data for the PDF
+        $data = [
+            'order' => $order,
+            'logo' => asset('assets/images/logo.png'),
+            'brandLogo' => asset('assets/images/brand.png'),
+        ];
+    
+        // Load the view into the PDF
+        $pdf = Pdf::loadView('billing.invoice', $data);
+    
+        // Return the PDF for download
+        return $pdf->download('invoice_' . $order->id . '.pdf');
+    }
+    
+
+
+
+
+
+
 }
 
 

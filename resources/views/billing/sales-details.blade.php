@@ -22,17 +22,18 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach($salesDetails as $key => $detail)
-                                    <tr>
-                                        <td>{{ $key + 1 }}</td>
-                                        <td>{{ $detail->name }}</td>
-                                        <td>{{ $detail->laundry_type }}</td>
-                                        <td>{{ $detail->service }}</td>
-                                        <td>RM {{ number_format($detail->total_amount, 2) }}</td>
-                                        <td>{{ $detail->status }}</td>
-                                        <td>{{ $detail->created_at }}</td>
-                                    </tr>
-                                @endforeach
+                            @foreach($salesDetails as $key => $detail)
+                                <tr>
+                                    <td>{{ $key + 1 }}</td>
+                                    <td>{{ $detail->customer_name ?? 'No Name' }}</td>
+                                    <td>{{ $detail->laundry_type ?? 'N/A' }}</td>
+                                    <td>{{ $detail->service_name ?? 'N/A' }}</td>
+                                    <td>RM {{ number_format($detail->total_amount, 2) }}</td>
+                                    <td>{{ $detail->status }}</td>
+                                    <td>{{ $detail->created_at }}</td>
+                                </tr>
+                            @endforeach
+
                             </tbody>
                         </table>
                     </div>

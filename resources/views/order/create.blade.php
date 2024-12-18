@@ -83,6 +83,11 @@
                                     <label for="remark" class="form-label">Remark</label>
                                     <textarea class="form-control" name="remark" rows="3" placeholder="Enter any remarks here..."></textarea>
                                 </div>
+                                <!-- Quantity -->
+                                <div class="col-md-6 mt-2">
+                                    <label for="quantity" class="form-label">Quantity</label>
+                                    <input type="number" class="form-control" name="quantity" id="quantity" placeholder="Enter quantity" required min="1" value="1">
+                                </div>
                                 <div class="col-md-6"></div>
                             </div><!-- end row-->
                             <div class="text-center mt-3">

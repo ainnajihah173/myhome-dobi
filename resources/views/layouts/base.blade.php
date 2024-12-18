@@ -4,7 +4,8 @@
 <head>
     <meta charset="utf-8" />
     <title>My Home Dobi</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    {{-- <meta name="viewport" content="width=device-width, initial-scale=1.0"> --}}
 
     <!-- App favicon -->
     <link rel="shortcut icon" href="{{ asset('assets/images/brand.png') }}">
@@ -16,6 +17,10 @@
     <!-- third party css -->
     <link href="{{ asset('assets/css/vendor/dataTables.bootstrap4.css') }}" rel="stylesheet" type="text/css" />
     <link href="{{ asset('assets/css/vendor/responsive.bootstrap4.css') }}" rel="stylesheet" type="text/css" />
+    <link href="{{ asset('assets/css/vendor/fullcalendar.min.css') }}" rel="stylesheet" type="text/css" />
+
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css">
+
 
 
 </head>
@@ -85,7 +90,7 @@
 
                 @if (auth()->user()->role === 'Admin')
                     <li class="side-nav-item">
-                        <a href="#" class="side-nav-link">
+                        <a href="{{ route('schedule.index')}}" class="side-nav-link">
                             <i class="uil-calendar-alt"></i>
                             <span> Shift Calendar </span>
                         </a>
@@ -124,12 +129,7 @@
                             <span>Laundry Type & Service </span>
                         </a>
                     </li>
-                    <li class="side-nav-item">
-                        <a href="#" class="side-nav-link">
-                            <i class="uil-wallet"></i>
-                            <span>Bill & Payment </span>
-                        </a>
-                    </li>
+
 
                     <li class="side-nav-item">
                         <a href="{{ route('delivery.index') }}" class="side-nav-link">
@@ -203,6 +203,25 @@
         <!-- Start Content-->
         <div class="container-fluid">
 
+            @if (session()->has('success'))
+                <br>
+                <div class="alert alert-success">
+                    {{ session()->get('success') }}
+                </div>
+
+            @endif
+
+            @if ($errors->any())
+                <br>
+                <div class="alert alert-danger">
+                    <ul>
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
             @yield('content')
 
         </div> <!-- container -->
@@ -234,6 +253,9 @@
 <!-- END wrapper -->
 
 <!-- bundle -->
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+
 <script src="{{ asset('assets/js/vendor.min.js') }}"></script>
 <script src="{{ asset('assets/js/app.min.js') }}"></script>
 
@@ -243,10 +265,13 @@
 <script src="{{ asset('assets/js/vendor/dataTables.responsive.min.js') }}"></script>
 <script src="{{ asset('assets/js/vendor/responsive.bootstrap4.min.js') }}"></script>
 <script src="{{ asset('assets/js/vendor/dataTables.checkboxes.min.js') }}"></script>
+<script src="{{ asset('assets/js/vendor/fullcalendar.min.js') }}"></script>
+
 <!-- third party js ends -->
 
 <!-- demo app -->
 <script src="{{ asset('assets/js/pages/demo.customers.js') }}"></script>
+<script src="{{ asset('assets/js/pages/demo.calendar.js') }}"></script>
 <!-- end demo js-->
 
 <!-- Datatables js -->
@@ -292,6 +317,7 @@
     document.getElementById('order_method').addEventListener('change', toggleAddressForm);
     document.getElementById('delivery_option').addEventListener('change', toggleAddressForm);
 </script>
+
 
 </body>
 

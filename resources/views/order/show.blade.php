@@ -51,7 +51,11 @@
                                 <ul>
                                     <li><a href="/path/to/proof-of-delivery.pdf" target="_blank">Proof of Delivery.pdf</a>
                                     </li>
-                                    <li><a href="/path/to/invoice-payment.pdf" target="_blank">Invoice Payment.pdf</a></li>
+                                    <li>
+                                        <a href="{{ route('billing.invoice', $order->id) }}" target="_blank"  
+                                            @if ($order->status !== 'Complete') onclick="event.preventDefault(); alert('Invoice is only available for completed orders.');" @endif>Invoice Payment.pdf
+                                        </a>
+                                    </li>
                                 </ul>
                             </div>
                         </div>

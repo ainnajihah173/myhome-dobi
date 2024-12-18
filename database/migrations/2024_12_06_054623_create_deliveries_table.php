@@ -13,6 +13,14 @@ return new class extends Migration
     {
         Schema::create('deliveries', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('order_id')->nullable(); //order details
+            $table->foreignId('pickup_id')->nullable(); //order details
+            $table->foreignId('deliver_id')->nullable(); //order details
+            // $table->string('pickup_driver')->nullable();
+            // $table->string('deliver_driver')->nullable();
+            $table->dateTime('delivery_date')->nullable();
+            $table->string('proof_pickup')->nullable();
+            $table->string('proof_deliver')->nullable();
             $table->timestamps();
         });
     }
