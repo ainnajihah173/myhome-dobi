@@ -5,6 +5,17 @@
             <div class="col-12">
                 <div class="card">
                     <div class="card-body">
+
+                        <!-- On-Screen Guidance for Admin -->
+                        <div id="admin-tooltip" class="on-screen-tooltip bg-info text-white p-3 mb-3">
+                            <p><strong>Welcome Admin!</strong> Here you can:</p>
+                            <ul>
+                                <li>View staff details by clicking the <i class="mdi mdi-eye"></i> icon.</li>
+                                <li>Edit staff profiles using the <i class="mdi mdi-square-edit-outline"></i> icon.</li>
+                                <li>Delete staff if no longer needed using the <i class="mdi mdi-delete"></i> icon.</li>
+                            </ul>
+                            <button onclick="closeTooltip('admin-tooltip')" class="btn btn-sm btn-light">Got it!</button>
+                        </div>
     
                         <div class="row">
                             <h4 class="header-title">Staff List</h4>
@@ -245,5 +256,46 @@
 
 
     </script>
+
+    <!-- JavaScript for On-Screen Guidance -->
+    <script>
+        function closeTooltip(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+
+        // Tooltips for actions
+        document.querySelectorAll('[data-tooltip]').forEach(item => {
+            item.addEventListener('mouseover', function () {
+                const tooltip = document.createElement('div');
+                tooltip.className = 'custom-tooltip';
+                tooltip.innerText = this.getAttribute('data-tooltip');
+                document.body.appendChild(tooltip);
+
+                const rect = this.getBoundingClientRect();
+                tooltip.style.left = `${rect.left + window.scrollX}px`;
+                tooltip.style.top = `${rect.top + window.scrollY - 30}px`;
+
+                this.addEventListener('mouseout', () => {
+                    document.body.removeChild(tooltip);
+                });
+            });
+        });
+    </script>
+
+    <style>
+        .on-screen-tooltip {
+            border-radius: 5px;
+        }
+
+        .custom-tooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-size: 12px;
+            z-index: 9999;
+        }
+    </style>
     
 @endsection

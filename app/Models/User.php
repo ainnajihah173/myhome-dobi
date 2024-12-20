@@ -23,6 +23,7 @@ class User extends Authenticatable
         'role',
         'email',
         'password',
+        'has_seen_schedule_tutorial',
     ];
 
     /**

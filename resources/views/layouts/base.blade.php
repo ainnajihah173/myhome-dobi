@@ -81,22 +81,36 @@
                     </a>
                 </li>
 
+                @if (auth()->user()->role === 'Staff')
+                    <li class="side-nav-item">
+                        <a href="{{ route('profile') }}" class="side-nav-link">
+                            <i class="uil-user"></i>
+                            <span>Profile Information</span>
+                        </a>
+                    </li>
+                @endif
+ 
+                
+                @if (auth()->user()->role === 'Admin'|| auth()->user()->role === 'Customer')
                 <li class="side-nav-item">
                     <a href="#" class="side-nav-link">
                         <i class="uil-user"></i>
-                        <span> Profile </span>
+                        <span> Profile Information </span>
                     </a>
-                </li>
+                </li> 
+                @endif 
 
-                @if (auth()->user()->role === 'Admin')
-                    <li class="side-nav-item">
+                @if (auth()->user()->role === 'Admin'|| auth()->user()->role === 'Staff')
+                    <li class="side-nav-item" id="schedule-sidebar-link">
                         <a href="{{ route('schedule.index')}}" class="side-nav-link">
                             <i class="uil-calendar-alt"></i>
-                            <span> Shift Calendar </span>
+                            <span> Schedule </span>
                         </a>
                     </li>
+                @endif
 
-                    <li class="side-nav-item">
+                @if (auth()->user()->role === 'Admin')
+                    <li class="side-nav-item" id="staff-management-sidebar-link">
                         <a href="{{route('staff.index')}}" class="side-nav-link">
                             <i class="uil-user-plus"></i>
                             <span> Staff Management </span>

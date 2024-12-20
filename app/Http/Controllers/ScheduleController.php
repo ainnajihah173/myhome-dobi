@@ -70,16 +70,16 @@ class ScheduleController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        $data = $request->validate([
-            'staff_id' => 'required|exists:staff,id',
+        $validatedData = $request->validate([
+            'staff_id'   => 'required|exists:staff,id',
+            'category'   => 'required|string',
             'start_time' => 'required|date',
-            'end_time' => 'required|date|after:start_time',
-            'category' => 'required|string',
+            'end_time'   => 'required|date|after:start_time',
         ]);
-
+    
         // Save the schedule in the database
-        Schedule::create($data);
-
+        Schedule::create($validatedData);
+        
         // Redirect to the index page with a success message
         return redirect()->route('schedule.index')->with('success', 'Schedule created successfully!');
     }
@@ -106,26 +106,14 @@ class ScheduleController extends Controller
      */
     public function update(Request $request, Schedule $schedule)
     {
-
-        $data = $request->validate([
-            'staff_id' => 'required|exists:staff,id',
-            'start_time' => 'required|date',
-            'end_time' => 'required|date|after:start_time',
-            'category' => 'required|string',
-        ]);
-
-        // Update the schedule
-        $schedule->update($data);
-
-        // Redirect to the index page with a success message
-        return redirect()->route('schedule.index')->with('success', 'Schedule updated successfully!');
+        //
     }
 
     /**
      * Remove the specified resource from storage.
      */
 
-    public function destroy($id)
+     public function destroy($id)
     {
         $schedule = Schedule::findOrFail($id);
         $schedule->delete();

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Staff;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class StaffController extends Controller
 {
@@ -128,8 +129,6 @@ class StaffController extends Controller
         return redirect()->route('staff.index')->with('success', 'Staff updated successfully.');
     }
 
-
-
     /**
      * Remove the specified resource from storage.
      */
@@ -138,4 +137,45 @@ class StaffController extends Controller
         $staff->user->delete(); // Deletes user and cascades to staff
         return redirect()->route('staff.index')->with('success', 'Staff deleted successfully.');
     }
+
+    public function profile()
+    {
+        $staff = Auth::user()->staff;
+
+        return view('profile.index', compact('staff'));
+    }
+
+    public function updateProfile(Request $request)
+    {
+        // Validation for the whole profile
+        $validated = $request->validate([
+            'name' => 'string|max:255',
+            'contact_number' => 'string|max:15',
+            'email' => 'email|unique:users,email,' . Auth::id(),
+            'gender' => 'in:Male,Female',
+            'address' => 'string',
+        ]);
+
+        $staff = Auth::user()->staff;
+
+        // Update user info
+        $staff->user->update([
+            'name' => $validated['name'],
+            'contact_number' => $validated['contact_number'],
+            'email' => $validated['email'],
+        ]);
+
+        // Update staff info
+        $staff->update([
+            'gender' => $validated['gender'],
+            'address' => $validated['address'],
+        ]);
+
+        return redirect()->route('profile')->with('success', 'Profile updated successfully.');
+    }
+
+
+
+
+
 }
