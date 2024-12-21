@@ -102,7 +102,7 @@
                                     </div>
                                 </div>
 
-                                @if ($delivery->order->delivery_option === 1 && $delivery->order->status === 'Delivery' )
+                                @if ($delivery && $delivery->order && $delivery->order->delivery_option === 1 && $delivery->order->status === 'Delivery')
                                     <div class="col-lg-6">
                                         <div class="form-group mb-3">
                                             <label for="kiosk-number">Delivery Date</label>
@@ -123,8 +123,15 @@
                                         <div class="form-group mb-3">
                                             <label for="inputdeliverDriver" class="col-form-label">Driver Assign</label>
                                             <input type="text" name="delivery_id" class="form-control"
-                                            value="{{ $delivery && $delivery->deliveryDriver ? $delivery->deliveryDriver->name : 'Not Assigned' }}"
+                                            value="{{$delivery && $delivery->deliveryDriver ? $delivery->deliveryDriver->name : 'Not Assigned' }}"
                                             readonly>
+                                        </div>
+                                    </div>
+                                    @else
+                                    <div class="col-lg-12">
+                                        <div class="form-group mb-3">
+                                            <label for="no-delivery" class="col-form-label">No Delivery Data Available</label>
+                                            <input type="text" id="no-delivery" class="form-control" value="No delivery information available." readonly>
                                         </div>
                                     </div>
                                 @endif

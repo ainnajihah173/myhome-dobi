@@ -142,6 +142,50 @@ class UsersTableSeeder extends Seeder
                 'updated_at' => now(),
             ],
 
+             //customer 2
+             [
+                'name' =>  'Ahmad Nazran',
+                'contact_number' =>  '0196007076',
+                'role' => 'Customer',
+                'email' => 'nazran@gmail.com',
+                'password' => Hash::make('password'),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+
+            //customer 3
+            [
+                'name' =>  'Alisa Asyra',
+                'contact_number' =>  '0189457890',
+                'role' => 'Customer',
+                'email' => 'alisa@gmail.com',
+                'password' => Hash::make('password'),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+
+            //customer 4
+            [
+                'name' =>  'Ali Suffian',
+                'contact_number' =>  '0164532574',
+                'role' => 'Customer',
+                'email' => 'suffian@gmail.com',
+                'password' => Hash::make('password'),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+
+            //customer 5
+            [
+                'name' =>  'Suraya Kamal',
+                'contact_number' =>  '0132023041',
+                'role' => 'Customer',
+                'email' => 'suraya@gmail.com',
+                'password' => Hash::make('password'),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+
             
         ]);
     }

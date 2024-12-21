@@ -114,6 +114,10 @@
                                                     </a>
                                                 @endif
 
+                                                <!-- View Page-->
+                                                <a href="{{ route('delivery.show', $order->id) }}"
+                                                    class="action-icon-success"><i class="mdi mdi-eye"></i></a>
+
                                                 <!-- Manager Assign Deliver Driver-->
                                                 @if (auth()->user()->staff->role === 'Manager' && $order->status === 'Assign Delivery')
                                                     <!-- Edit Page-->
@@ -122,26 +126,27 @@
                                                             class="mdi mdi-square-edit-outline"></i></a>
                                                 @endif
 
-                                                <!-- View Page-->
-                                                <a href="{{ route('delivery.show', $order->id) }}"
-                                                    class="action-icon-success"><i class="mdi mdi-eye"></i></a>
-
+                                                @foreach ($orders as $order)
                                                 @if (auth()->user()->staff->role === 'Pickup & Delivery Driver' &&
-                                                        $order->order_method === 'Pickup' &&
-                                                        $order->status === 'Pickup')
+                                                    $order->order_method === 'Pickup' &&
+                                                    $order->status === 'Pickup' &&
+                                                    $order->delivery->contains('pickup_id', auth()->user()->id)) <!-- Check if the current user is the pickup driver -->
                                                     <!-- Proof Pickup -->
-                                                    <a href="{{ route('delivery.editPickup', $order->id) }}"
-                                                        class="action-icon-info"><i class="mdi mdi-home-map-marker"></i></a>
+                                                    <a href="{{ route('delivery.editPickup', $order->id) }}" class="action-icon-info">
+                                                        <i class="mdi mdi-home-map-marker"></i>
+                                                    </a>
                                                 @endif
-
+                                            
                                                 @if (auth()->user()->staff->role === 'Pickup & Delivery Driver' &&
-                                                        $order->delivery_option === true &&
-                                                        $order->status === 'Delivery')
-                                                    <!-- Proof Pickup -->
-                                                    <a href="{{ route('delivery.editDeliver', $order->id) }}"
-                                                        class="action-icon-warning"><i class="mdi mdi-home-map-marker"></i></a>
+                                                    $order->delivery_option === 1 &&
+                                                    $order->status === 'Delivery' &&
+                                                    $order->delivery->contains('deliver_id', auth()->user()->id)) <!-- Check if the current user is the delivery driver -->
+                                                    <!-- Proof Delivery -->
+                                                    <a href="{{ route('delivery.editDeliver', $order->id) }}" class="action-icon-warning">
+                                                        <i class="mdi mdi-home-map-marker"></i>
+                                                    </a>
                                                 @endif
-
+                                            @endforeach
 
                                                 {{-- @if (auth()->user()->staff->role === 'Manager' && $order->status === 'Delivery')
                                                 <!-- Delivery-->
@@ -165,10 +170,11 @@
     <script>
         function confirmScheduleView(event, scheduleUrl, assignUrl) {
             event.preventDefault(); // Prevent the default link behavior
-    
+
             // Show a confirmation dialog
-            const userConfirmed = window.confirm("Please view the driver schedule before assigning a driver. Do you want to view the schedule?");
-    
+            const userConfirmed = window.confirm(
+                "Please view the driver schedule before assigning a driver. Do you want to view the schedule?");
+
             if (userConfirmed) {
                 // Redirect to the schedule page
                 window.location.href = scheduleUrl;
