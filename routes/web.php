@@ -7,6 +7,8 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\DeliveryController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BillingPaymentController;
+use App\Http\Controllers\ChemicalOrderController;
+use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\StaffController;
 
