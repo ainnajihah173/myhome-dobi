@@ -8,6 +8,7 @@ use App\Http\Controllers\DeliveryController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BillingPaymentController;
 use App\Http\Controllers\StaffController;
+use App\Http\Controllers\ScheduleController;
 
 /*
 |--------------------------------------------------------------------------

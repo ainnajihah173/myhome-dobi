@@ -22,21 +22,21 @@ class DeliveryController extends Controller
 
         if ($user->staff->role === 'Manager') {
             // Managers can view all orders and deliveries
-            $orders = Order::with(['user', 'guest', 'laundryService'])->get();
-            $deliveries = Delivery::all();
+            $orders = Order::with(['user', 'guest', 'laundryService', 'delivery'])->get();
+            $delivery = Delivery::all();
         } else {
             // Drivers only see their assigned deliveries
             $pickupDeliveries = Delivery::where('pickup_id', $user->id)->get();
             $deliveryDeliveries = Delivery::where('deliver_id', $user->id)->get();
 
             // Combine the results if needed
-            $deliveries = $pickupDeliveries->merge($deliveryDeliveries);
+            $delivery = $pickupDeliveries->merge($deliveryDeliveries);
 
             // Retrieve related orders for the deliveries
-            $orders = Order::whereIn('id', $deliveries->pluck('order_id'))->get();
+            $orders = Order::whereIn('id', $delivery->pluck('order_id'))->get();
         }
 
-        return view('delivery.index', compact('orders', 'deliveries'));
+        return view('delivery.index', compact('orders', 'delivery'));
     }
 
 
@@ -88,9 +88,9 @@ class DeliveryController extends Controller
             ->where('order_id', $id) // Match the delivery to the given order
             ->first(); // Retrieve a single Delivery model instance
 
-        // $users = User::whereHas('staff', function ($query) {
-        //     $query->where('role', 'Pickup & Delivery Driver');
-        // })->get();
+        $users = User::whereHas('staff', function ($query) {
+            $query->where('role', 'Pickup & Delivery Driver');
+        })->get();
 
 
         return view('delivery.show', compact('order', 'delivery'));
@@ -183,6 +183,7 @@ class DeliveryController extends Controller
         $order->save();
 
         $delivery = Delivery::findOrFail($id);
+        $delivery->order_id = $request->order_id;
         $delivery->deliver_id = $request->deliver_id;
         $delivery->delivery_date = $request->delivery_date;
 
@@ -219,7 +220,7 @@ class DeliveryController extends Controller
 
         // Update the order status
         $order = Order::findOrFail($delivery->order_id); // Use delivery's `order_id`
-        $order->status = 'In Work';
+        $order->status = 'Complete';
         $order->save();
 
         // Handle proof pickup file upload if provided
