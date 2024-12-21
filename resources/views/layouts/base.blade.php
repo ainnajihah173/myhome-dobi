@@ -120,7 +120,7 @@
 
                 @if (auth()->user()->role === 'Admin' || auth()->user()->role === 'Staff')
                     <li class="side-nav-item">
-                        <a href="#" class="side-nav-link">
+                        <a href="{{route('inventory.index')}}" class="side-nav-link">
                             <i class="uil-clipboard-alt"></i>
                             <span>Inventory & Stock</span>
                         </a>
