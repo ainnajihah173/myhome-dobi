@@ -60,89 +60,49 @@ class OrderController extends Controller
      */
     public function store(Request $request)
     {
-<<<<<<< HEAD
-        // Validate the incoming request
-        /*$request->validate([
-=======
-        // Validate data
+        //validate data
         $request->validate([
->>>>>>> 2994b414bb01725a4db2a36088657a5e0b3f1ef3
             'order_method' => 'required|in:Walk in,Pickup',
             'laundry_type_id' => 'required|exists:laundry_types,id',
             'laundry_service_id' => 'required|exists:laundry_services,id',
             'remark' => 'nullable|string',
             'delivery_option' => 'nullable|boolean',
-<<<<<<< HEAD
-            'address' => 'required_if:delivery_option,true',
+            'address' => [
+                'nullable',
+                'string',
+                'required_if:order_method,Pickup',
+                'required_if:delivery_option,true',
+            ],
+            'pickup_date' => 'nullable|date|after:now|required_if:order_method,Pickup',
             'name' => 'required_if:guest,true|string|max:255',
             'email' => 'nullable|email|max:255',
             'contact_number' => 'required_if:guest,true|string|max:15',
-        ]);*/
-
-    // Fetch the price of the selected laundry service
-    $service = DB::table('laundry_services')
-        ->where('id', $request->laundry_service_id)
-        ->first();
-
-    if (!$service) {
-        return back()->withErrors('Invalid laundry service selected.');
-=======
-            'address' => 'nullable|string',  // Allow address to be null or string
-            'pickup_date' => 'nullable|date|after:now|required_if:order_method,Pickup',
         ]);
+
 
         // Initialize a new order instance
         $order = new Order();
 
+        // Assign user or guest based on authentication status
+        if (auth()->check() && auth()->user()->role === 'Customer') {
+            $order->user_id = auth()->user()->id; // Registered user
+        } else {
+            // Guest user logic
+            $guest = Guest::firstOrCreate(
+                ['contact_number' => $request->contact_number],
+                ['name' => $request->name, 'email' => $request->email]
+            );
+            $order->guest_id = $guest->id;
+        }
+
         // Assign values to the order
-        $order->user_id = auth()->user()->id;
         $order->order_method = $request->order_method;
         $order->laundry_type_id = $request->laundry_type_id;
         $order->laundry_service_id = $request->laundry_service_id;
         $order->delivery_option = $request->delivery_option ?? false;
-        $order->address = $request->address; // Save address regardless of delivery_option
+        $order->address = $request->delivery_option ? $request->address : null;
         $order->pickup_date = $request->pickup_date ?? null;
         $order->remark = $request->remark;
-
-        // Save the order to the database
-        $order->save();
-
-        // Redirect to the order list with a success message
-        return redirect()->route('order.index')->with('success', 'Order created successfully! The manager will update the total amount and quantity.');
->>>>>>> 2994b414bb01725a4db2a36088657a5e0b3f1ef3
-    }
-
-    // Calculate delivery fee
-    $deliveryFee = $request->delivery_option ? 10.00 : 0.00; // RM 10 for delivery
-
-    // Calculate total amount
-    $quantity = $request->quantity;
-    $totalAmount = ($service->price * $quantity) + $deliveryFee;
-
-    // Create a new order instance
-    $order = new Order();
-
-    if (auth()->check() && auth()->user()->role === 'Customer') {
-        $order->user_id = auth()->user()->id; // Registered user
-    } else {
-        // Guest user logic
-        $guest = Guest::firstOrCreate(
-            ['contact_number' => $request->contact_number],
-            ['name' => $request->name, 'email' => $request->email]
-        );
-        $order->guest_id = $guest->id;
-    }
-
-    // Set order attributes
-    $order->order_method = $request->order_method;
-    $order->laundry_type_id = $request->laundry_type_id;
-    $order->laundry_service_id = $request->laundry_service_id;
-    $order->quantity = $quantity;
-    $order->delivery_fee = $deliveryFee;
-    $order->total_amount = $totalAmount;
-    $order->remark = $request->remark;
-    $order->delivery_option = $request->delivery_option ?? false;
-    $order->address = $request->delivery_option ? $request->address : null;
 
     // Save the order
     $order->save();
@@ -291,7 +251,6 @@ class OrderController extends Controller
         return redirect()->route('order.index')->withErrors('Order not found.');
     }
 
-<<<<<<< HEAD
     // Check the current status
     if ($order->status === 'Pending' || $order->status === 'In Work') {
         // Update the status to "Pay"
@@ -304,7 +263,7 @@ class OrderController extends Controller
     // Return with an error if the status cannot be updated
     return redirect()->route('order.index')->withErrors('Order status cannot be updated.');
 }
-=======
+
     // Proof of Pickup PDF
     public function generateProofOfPickup($id)
     {
@@ -324,6 +283,5 @@ class OrderController extends Controller
         $pdf = PDF::loadView('order.proof-of-delivery', compact('order'));
         return $pdf->download('Proof_of_Delivery_Order_' . $order->id . '.pdf');
     }
->>>>>>> 2994b414bb01725a4db2a36088657a5e0b3f1ef3
 
 }
