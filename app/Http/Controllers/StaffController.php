@@ -14,12 +14,17 @@ class StaffController extends Controller
      */
     public function index()
     {
-        // Fetch all staff with their user details
-        $staffs = Staff::with('user')->get();
+        // Fetch staff data with their user details and order by the latest created
+        $staffs = Staff::with('user')
+                    ->where('role', '!=', 'Manager') // Exclude managers
+                    ->latest() // Orders by created_at descending
+                    ->get();   // Execute the query and retrieve data
 
         // Return the view with the staff data
         return view('staff.index', compact('staffs'));
     }
+
+
 
 
     /**
@@ -46,6 +51,17 @@ class StaffController extends Controller
             'password' => 'required|string|min:8',
         ]);
 
+        // Check if a staff member with the same name and role already exists
+        $existingStaff = Staff::whereHas('user', function ($query) use ($validated) {
+            $query->where('name', $validated['name']);
+        })->where('role', $validated['role'])->first();
+        
+        if ($existingStaff) {
+            return back()
+                ->withErrors(['role' => 'A staff member with this name and role already exists.'])
+                ->withInput();
+        }
+
         // Save the user data to the users table
         $user = User::create([
             'name' => $validated['name'],
@@ -65,6 +81,17 @@ class StaffController extends Controller
         // Redirect back with a success message
         return redirect()->route('staff.index')->with('success', 'Staff created successfully.');
     }
+
+    public function checkDuplicate(Request $request)
+    {
+        $exists = Staff::where('name', $request->name)
+            ->where('role', $request->role)
+            ->exists();
+
+        return response()->json(['exists' => $exists]);
+    }
+
+
 
     // public function schedule()
     // {
@@ -100,7 +127,7 @@ class StaffController extends Controller
             'email' => 'email|unique:users,email,' . $staff->user->id,
             'gender' => 'in:Male,Female',
             'address' => 'string',
-            'role' => 'string',
+            'role' => 'string|nullable', // Make role nullable to handle no changes explicitly
             'password' => 'nullable|string|min:8', // Allow password to be nullable
         ]);
 
@@ -119,12 +146,19 @@ class StaffController extends Controller
         // Update user info
         $staff->user->update($userData);
 
-        // Update staff info
-        $staff->update([
+        // Prepare staff update data
+        $staffData = [
             'gender' => $validated['gender'],
-            'role' => $validated['role'],
             'address' => $validated['address'],
-        ]);
+        ];
+
+        // Update role only if it's explicitly provided
+        if (!empty($validated['role']) && $validated['role'] !== $staff->role) {
+            $staffData['role'] = $validated['role'];
+        }
+
+        // Update staff info
+        $staff->update($staffData);
 
         return redirect()->route('staff.index')->with('success', 'Staff updated successfully.');
     }
@@ -147,35 +181,36 @@ class StaffController extends Controller
 
     public function updateProfile(Request $request)
     {
-        // Validation for the whole profile
-        $validated = $request->validate([
-            'name' => 'string|max:255',
-            'contact_number' => 'string|max:15',
-            'email' => 'email|unique:users,email,' . Auth::id(),
-            'gender' => 'in:Male,Female',
-            'address' => 'string',
-        ]);
-
-        $staff = Auth::user()->staff;
-
-        // Update user info
-        $staff->user->update([
-            'name' => $validated['name'],
-            'contact_number' => $validated['contact_number'],
-            'email' => $validated['email'],
-        ]);
-
-        // Update staff info
-        $staff->update([
-            'gender' => $validated['gender'],
-            'address' => $validated['address'],
-        ]);
-
-        return redirect()->route('profile')->with('success', 'Profile updated successfully.');
+        try {
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'contact_number' => 'required|string|max:15',
+                'email' => 'required|email|unique:users,email,' . Auth::id(),
+                'gender' => 'required|in:Male,Female',
+                'address' => 'nullable|string',  // Update this line if address is optional
+            ]);
+    
+            $staff = Auth::user()->staff;
+    
+            // Update user info
+            $staff->user->update([
+                'name' => $validated['name'],
+                'contact_number' => $validated['contact_number'],
+                'email' => $validated['email'],
+            ]);
+    
+            // Update staff info
+            $staff->update([
+                'gender' => $validated['gender'],
+                'address' => $validated['address'],
+            ]);
+    
+            return redirect()->route('profile')->with('success', 'Profile updated successfully.');
+        } catch (\Exception $e) {
+            // Log the error or show an error message
+            return back()->with('error', 'An error occurred: ' . $e->getMessage());
+        }
     }
-
-
-
-
+    
 
 }

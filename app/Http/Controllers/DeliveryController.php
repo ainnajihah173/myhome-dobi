@@ -24,7 +24,7 @@ class DeliveryController extends Controller
         $assignCount = Order::whereIn('status', ['Assign Delivery', 'Assign Pickup'])->count();
         $completeCount = Order::whereIn('status', ['in Work', 'Complete'])->count();
 
-        if ($user->staff->role === 'Manager') {
+        if ($user->role === 'Staff' && $user->staff->role === 'Manager') {
             // Managers can view all orders and deliveries
             $orders = Order::with(['user', 'guest', 'laundryService', 'delivery'])->get();
             $delivery = Delivery::all();

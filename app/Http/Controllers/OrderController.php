@@ -4,11 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Models\User;
-use App\Models\Guest;
+use App\Models\Delivery;
 use App\Models\LaundryService;
 use App\Models\LaundryType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Barryvdh\DomPDF\Facade as DomPDF;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class OrderController extends Controller
 {
@@ -17,17 +19,28 @@ class OrderController extends Controller
      */
     public function index()
     {
-        if (auth()->user()->role === 'Customer') {
-            // Get the authenticated user's ID
-            $userId = auth()->user()->id;
-            // Retrieve orders belonging to the authenticated customer
-            $orders = Order::with(['user', 'laundryService', 'laundryType'])
-                ->where('user_id', $userId)
-                ->get();
-        } else {
+        $orders = Order::with(['user', 'laundryService', 'laundryType']);
 
-            $orders = Order::all();
+        // Check if the user is a staff member with restricted roles (e.g., Dry Cleaner, Washer/Folder, etc.)
+        if (auth()->user()->role === 'Customer') {
+            // If the user is a customer, get their specific orders (show all statuses for customers)
+            $userId = auth()->user()->id;
+            $orders = $orders->where('user_id', $userId);
+        } elseif (in_array(auth()->user()->staff->role, ['Dry Cleaner', 'Washer/Folder', 'Presser/Ironing', 'Dryer'])) {
+            // If the user is a restricted staff role, only get orders with "In Work" status
+            $orders = $orders->where('status', 'In Work');
+        } else {
+            $orders = $orders->whereIn('status', ['Pending', 'In Work', 'Pay', 'Complete']);
         }
+
+        // Retrieve orders, ordered by the predefined status order for customers
+        if (auth()->user()->role === 'Customer') {
+            $orders = $orders->orderByRaw("FIELD(status, 'Pending', 'In Work', 'Assign Pickup', 'Pickup', 'Pay', 'Assign Delivery', 'Delivery', 'Complete')")->get();
+        } else {
+            // For staff, we order based on their specific role
+            $orders = $orders->orderByRaw("FIELD(status, 'Pending', 'In Work', 'Pay', 'Complete')")->get();
+        }
+
         return view('order.index', compact('orders'));
     }
 
@@ -36,17 +49,10 @@ class OrderController extends Controller
      */
     public function create()
     {
-        if (auth()->user()->role === 'Customer') {
-            $users = User::where('id', auth()->user()->id)->first();
-            $laundryServices = LaundryService::all();
-            $laundryTypes = LaundryType::all();
-            return view('order.create', compact('users', 'laundryServices', 'laundryTypes'));
-        } else {
-            $laundryServices = LaundryService::all();
-            $laundryTypes = LaundryType::all();
-            return view('order.create', compact('laundryServices', 'laundryTypes'));
-        }
-
+        $users = User::where('id', auth()->user()->id)->first();
+        $laundryServices = LaundryService::all();
+        $laundryTypes = LaundryType::all();
+        return view('order.create', compact('users', 'laundryServices', 'laundryTypes'));
     }
 
     /**
@@ -54,13 +60,19 @@ class OrderController extends Controller
      */
     public function store(Request $request)
     {
+<<<<<<< HEAD
         // Validate the incoming request
         /*$request->validate([
+=======
+        // Validate data
+        $request->validate([
+>>>>>>> 2994b414bb01725a4db2a36088657a5e0b3f1ef3
             'order_method' => 'required|in:Walk in,Pickup',
             'laundry_type_id' => 'required|exists:laundry_types,id',
             'laundry_service_id' => 'required|exists:laundry_services,id',
             'remark' => 'nullable|string',
             'delivery_option' => 'nullable|boolean',
+<<<<<<< HEAD
             'address' => 'required_if:delivery_option,true',
             'name' => 'required_if:guest,true|string|max:255',
             'email' => 'nullable|email|max:255',
@@ -74,6 +86,30 @@ class OrderController extends Controller
 
     if (!$service) {
         return back()->withErrors('Invalid laundry service selected.');
+=======
+            'address' => 'nullable|string',  // Allow address to be null or string
+            'pickup_date' => 'nullable|date|after:now|required_if:order_method,Pickup',
+        ]);
+
+        // Initialize a new order instance
+        $order = new Order();
+
+        // Assign values to the order
+        $order->user_id = auth()->user()->id;
+        $order->order_method = $request->order_method;
+        $order->laundry_type_id = $request->laundry_type_id;
+        $order->laundry_service_id = $request->laundry_service_id;
+        $order->delivery_option = $request->delivery_option ?? false;
+        $order->address = $request->address; // Save address regardless of delivery_option
+        $order->pickup_date = $request->pickup_date ?? null;
+        $order->remark = $request->remark;
+
+        // Save the order to the database
+        $order->save();
+
+        // Redirect to the order list with a success message
+        return redirect()->route('order.index')->with('success', 'Order created successfully! The manager will update the total amount and quantity.');
+>>>>>>> 2994b414bb01725a4db2a36088657a5e0b3f1ef3
     }
 
     // Calculate delivery fee
@@ -116,13 +152,14 @@ class OrderController extends Controller
 }
 
 
+
     /**
      * Display the specified resource.
      */
     public function show($id)
     {
         // Fetch the order with its related data
-        $order = Order::with(['user', 'guest', 'laundryService', 'laundryType'])
+        $order = Order::with(['user', 'laundryService', 'laundryType'])
             ->findOrFail($id);
 
         // Pass the order data to the view
@@ -132,11 +169,17 @@ class OrderController extends Controller
     // Show the edit page
     public function edit($id)
     {
+
         $order = Order::findOrFail($id); // Fetch the order by ID
         $laundryTypes = LaundryType::all(); // Fetch laundry types
         $laundryServices = LaundryService::all(); // Fetch laundry services
 
-        return view('order.update', compact('order', 'laundryTypes', 'laundryServices'));
+        if (auth()->user()->role === 'Customer') {
+            return view('order.update', compact('order', 'laundryTypes', 'laundryServices'));
+        } elseif (auth()->user()->role === 'Staff') {
+            return view('order.edit', compact('order', 'laundryTypes', 'laundryServices'));
+        }
+
     }
 
     // Update the order
@@ -146,12 +189,13 @@ class OrderController extends Controller
 
         // Validate the incoming data
         $validatedData = $request->validate([
-            'order_method' => 'required|string',
+            'order_method' => 'required|string|in:Walk in,Pickup',
             'delivery_option' => 'nullable|boolean',
             'laundry_type_id' => 'required|exists:laundry_types,id',
             'laundry_service_id' => 'required|exists:laundry_services,id',
             'address' => 'nullable|string|max:500',
             'remark' => 'nullable|string|max:500',
+            'pickup_date' => 'nullable|date|after:now|required_if:order_method,Pickup',
         ]);
 
         // Update the order fields
@@ -159,7 +203,15 @@ class OrderController extends Controller
         $order->delivery_option = $request->has('delivery_option') ? 1 : 0;
         $order->laundry_type_id = $validatedData['laundry_type_id'];
         $order->laundry_service_id = $validatedData['laundry_service_id'];
-        $order->address = $validatedData['address'] ?? null;
+        $order->pickup_date = $validatedData['pickup_date'] ?? null;
+
+        // If order method is 'Walk in', set address to null
+        if ($validatedData['order_method'] === 'Walk in') {
+            $order->address = null;
+        } else {
+            $order->address = $validatedData['address'] ?? null;
+        }
+
         $order->remark = $validatedData['remark'] ?? null;
 
         $order->save(); // Save the updated order
@@ -167,13 +219,68 @@ class OrderController extends Controller
         return redirect()->route('order.index')->with('success', 'Order updated successfully!');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Order $order)
+    public function updateQuantity(Request $request, $id)
     {
-        //
+        // Validate the input
+        $request->validate([
+            'quantity' => 'required|integer|min:1',
+            'delivery_fee' => 'nullable|numeric|min:0', // Delivery fee is optional
+        ]);
+    
+        // Find the order by ID
+        $order = Order::findOrFail($id);
+    
+        // Update the quantity
+        $order->quantity = $request->input('quantity');
+    
+        // Get the price per unit from the related service
+        $pricePerUnit = $order->laundryService->price;
+    
+        // Get the delivery fee (if provided), otherwise default to 0
+        $deliveryFee = $request->input('delivery_fee', 0);
+    
+        // Update the delivery fee in the order
+        $order->delivery_fee = $deliveryFee;
+    
+        // Recalculate the total amount
+        $order->total_amount = ($order->quantity * $pricePerUnit) + $deliveryFee;
+        
+        // Update the order status based on the order method
+        if ($order->order_method === 'Pickup') {
+            $order->status = 'Assign Pickup';
+        } else {
+            $order->status = 'In Work';
+        }
+    
+        // Save the updated order
+        $order->save();
+    
+        // Redirect back with a success message
+        return redirect()->route('order.index')->with('success', 'Order quantity updated successfully.');
     }
+    
+
+    public function destroy($id)
+    {
+        // Find the order by ID
+        $order = Order::findOrFail($id);
+
+        // Check if the order has a delivery or pickup option
+        if ($order->delivery_option === true || $order->order_method === 'Pickup') {
+            // Find and delete the associated delivery record
+            $delivery = Delivery::where('order_id', $order->id)->first();
+            if ($delivery) {
+                $delivery->delete();
+            }
+        }
+
+        // Delete the order
+        $order->delete();
+
+        // Redirect back with a success message
+        return redirect()->route('order.index')->with('success', 'Order data deleted successfully.');
+    }
+
 
     public function updateStatus($id)
 {
@@ -184,6 +291,7 @@ class OrderController extends Controller
         return redirect()->route('order.index')->withErrors('Order not found.');
     }
 
+<<<<<<< HEAD
     // Check the current status
     if ($order->status === 'Pending' || $order->status === 'In Work') {
         // Update the status to "Pay"
@@ -196,5 +304,26 @@ class OrderController extends Controller
     // Return with an error if the status cannot be updated
     return redirect()->route('order.index')->withErrors('Order status cannot be updated.');
 }
+=======
+    // Proof of Pickup PDF
+    public function generateProofOfPickup($id)
+    {
+        $order = Order::with('delivery') // Optionally, load delivery if needed
+            ->findOrFail($id);
+
+        $pdf = PDF::loadView('order.proof-of-pickup', compact('order'));
+        return $pdf->download('Proof_of_Pickup_Order_' . $order->id . '.pdf');
+    }
+
+    // Proof of Delivery PDF
+    public function generateProofOfDelivery($id)
+    {
+        $order = Order::with('delivery') // Optionally, load delivery if needed
+            ->findOrFail($id);
+
+        $pdf = PDF::loadView('order.proof-of-delivery', compact('order'));
+        return $pdf->download('Proof_of_Delivery_Order_' . $order->id . '.pdf');
+    }
+>>>>>>> 2994b414bb01725a4db2a36088657a5e0b3f1ef3
 
 }

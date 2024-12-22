@@ -70,10 +70,10 @@
                                 <div class="col-lg-12">
                                     <div class="form-group">
                                         <label>Address</label>
-                                        {{-- <span id="address-display" onclick="makeEditable('address')">{{ $staff->address }}</span> --}}
-                                        <textarea id="address-input" name="ad
-                                        dress" class="form-control" rows="3">{{ $staff->address }}</textarea>
-                                        {{-- <small id="address-error" class="text-danger"></small> --}}
+                                        <textarea id="address-input" name="address" class="form-control" rows="3">{{ old('address', $staff->address) }}</textarea>
+                                        @error('address')
+                                            <small class="text-danger">{{ $message }}</small>
+                                        @enderror
                                     </div>
                                 </div>
                         
@@ -90,7 +90,7 @@
         </div> <!-- end row -->
     </div>
 
-    {{-- <script>
+    <script>
         // Function to toggle between edit and display mode
         function makeEditable(field) {
             const displayElement = document.getElementById(`${field}-display`);
@@ -134,6 +134,6 @@
             });
         }
 
-    </script> --}}
+    </script>
 
 @endsection

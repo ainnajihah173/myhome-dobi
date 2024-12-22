@@ -13,7 +13,6 @@ return new class extends Migration {
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->nullable(); //registered user
-            $table->foreignId('guest_id')->nullable(); //unregistered user
             $table->foreignId('laundry_service_id');
             $table->foreignId('laundry_type_id');
             $table->text('remark')->nullable();

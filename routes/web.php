@@ -36,6 +36,8 @@ Route::middleware('auth')->group(function () {
 
     // Manage Staff
     Route::resource('staff', StaffController::class);
+    //Duplicate check
+    Route::post('/staff/check-duplicate', [StaffController::class, 'checkDuplicate'])->name('staff.check-duplicate');
     // In routes/web.php
     Route::get('/profile', [StaffController::class, 'profile'])->name('profile');
     // Route for updating the entire profile
@@ -45,14 +47,16 @@ Route::middleware('auth')->group(function () {
     Route::resource('schedule', ScheduleController::class);
     Route::get('/api/staff', [ScheduleController::class, 'getAllStaff']);
     Route::get('/api/schedules', [ScheduleController::class, 'getSchedules']); // Fetch schedules for calendar
-    
+
     // Manage Laundry Type and Services
     Route::resource('laundry', LaundryController::class);
 
     // Manage Order
     Route::resource('order', OrderController::class);
     Route::patch('/order/{id}/update-status', [OrderController::class, 'updateStatus'])->name('order.update-status');
-
+    Route::put('/orders/{id}/update-quantity', [OrderController::class, 'updateQuantity'])->name('order.update-quantity');
+    Route::get('/order/{id}/proof-of-pickup', [OrderController::class, 'generateProofOfPickup'])->name('order.proof-of-pickup');
+Route::get('/order/{id}/proof-of-delivery', [OrderController::class, 'generateProofOfDelivery'])->name('order.proof-of-delivery');
 
     // Manage Pickup & Delivery
     Route::resource('delivery', DeliveryController::class);
@@ -78,11 +82,11 @@ Route::middleware('auth')->group(function () {
     // Route to handle the chemical order form submission
     Route::post('chemical-orders', [ChemicalOrderController::class, 'store'])->name('chemical-orders.store');
     // Route for deleting chemical order
-    Route::delete('/chemical-orders/{chemicalOrder}', [ChemicalOrderController::class,'destroy'])->name('chemical-orders.destroy');
+    Route::delete('/chemical-orders/{chemicalOrder}', [ChemicalOrderController::class, 'destroy'])->name('chemical-orders.destroy');
 
     /*Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');*/
 });
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';
