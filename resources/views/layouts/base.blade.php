@@ -74,6 +74,7 @@
                     </a>
                 </div>
                 <li class="side-nav-title side-nav-item text-dark">Menu</li>
+                <!-- Dashboard Link -->
                 <li class="side-nav-item">
                     <a href="{{ route('dashboard') }}" class="side-nav-link">
                         <i class="uil-home-alt"></i>
@@ -81,6 +82,7 @@
                     </a>
                 </li>
 
+                <!-- Profile Information (Staff Only) -->
                 @if (auth()->user()->role === 'Staff')
                     <li class="side-nav-item">
                         <a href="{{ route('profile') }}" class="side-nav-link">
@@ -89,45 +91,65 @@
                         </a>
                     </li>
                 @endif
- 
-                
-                @if (auth()->user()->role === 'Admin'|| auth()->user()->role === 'Customer')
-                <li class="side-nav-item">
-                    <a href="#" class="side-nav-link">
-                        <i class="uil-user"></i>
-                        <span> Profile Information </span>
-                    </a>
-                </li> 
-                @endif 
 
-                @if (auth()->user()->role === 'Admin'|| auth()->user()->role === 'Staff')
+                <!-- Profile Information (Admin and Customer) -->
+                @if (auth()->user()->role === 'Admin' || auth()->user()->role === 'Customer')
+                    <li class="side-nav-item">
+                        <a href="#" class="side-nav-link">
+                            <i class="uil-user"></i>
+                            <span> Profile Information </span>
+                        </a>
+                    </li>
+                @endif
+
+                <!-- Schedule (Admin and Staff) -->
+                @if (auth()->user()->role === 'Admin' || auth()->user()->role === 'Staff')
                     <li class="side-nav-item" id="schedule-sidebar-link">
-                        <a href="{{ route('schedule.index')}}" class="side-nav-link">
+                        <a href="{{ route('schedule.index') }}" class="side-nav-link">
                             <i class="uil-calendar-alt"></i>
                             <span> Schedule </span>
                         </a>
                     </li>
                 @endif
 
+                <!-- Staff Management (Admin Only) -->
                 @if (auth()->user()->role === 'Admin')
                     <li class="side-nav-item" id="staff-management-sidebar-link">
-                        <a href="{{route('staff.index')}}" class="side-nav-link">
+                        <a href="{{ route('staff.index') }}" class="side-nav-link">
                             <i class="uil-user-plus"></i>
                             <span> Staff Management </span>
                         </a>
                     </li>
                 @endif
 
-                @if (auth()->user()->role === 'Admin' || auth()->user()->role === 'Staff')
+                <!-- Inventory & Stock (Admin or Manager) -->
+                @if (auth()->user()->role === 'Admin' || (auth()->user()->staff && auth()->user()->staff->role === 'Manager'))
                     <li class="side-nav-item">
-                        <a href="{{route('inventory.index')}}" class="side-nav-link">
+                        <a href="{{ route('inventory.index') }}" class="side-nav-link">
                             <i class="uil-clipboard-alt"></i>
                             <span>Inventory & Stock</span>
                         </a>
                     </li>
                 @endif
 
-                @if (auth()->user()->role === 'Customer' || auth()->user()->role === 'Staff')
+                <!-- Laundry Type & Service (Manager Only) -->
+                @if (auth()->user()->role === 'Staff' && auth()->user()->staff->role === 'Manager')
+                    <li class="side-nav-item">
+                        <a href="{{ route('laundry.index') }}" class="side-nav-link">
+                            <i class="uil-cog"></i>
+                            <span>Laundry Type & Service </span>
+                        </a>
+                    </li>
+                @endif
+
+                <!-- Order List (Admin, Customer, or Staff with specific roles) -->
+                @if (auth()->user()->role === 'Customer' ||
+                        (auth()->user()->staff &&
+                            (auth()->user()->staff->role === 'Manager' ||
+                                auth()->user()->staff->role === 'Dry Cleaner' ||
+                                auth()->user()->staff->role === 'Washer/Folder' ||
+                                auth()->user()->staff->role === 'Presser/Ironing' ||
+                                auth()->user()->staff->role === 'Dryer')))
                     <li class="side-nav-item">
                         <a href="{{ route('order.index') }}" class="side-nav-link">
                             <i class="uil-shopping-cart-alt"></i>
@@ -136,15 +158,10 @@
                     </li>
                 @endif
 
-                @if (auth()->user()->role === 'Staff')
-                    <li class="side-nav-item">
-                        <a href="{{ route('laundry.index') }}" class="side-nav-link">
-                            <i class="uil-cog"></i>
-                            <span>Laundry Type & Service </span>
-                        </a>
-                    </li>
-
-
+                <!-- Pickup & Delivery (Staff or Manager) -->
+                @if (
+                    (auth()->user()->role === 'Staff' &&
+                        (auth()->user()->staff->role === 'Pickup & Delivery Driver' || auth()->user()->staff->role === 'Manager')))
                     <li class="side-nav-item">
                         <a href="{{ route('delivery.index') }}" class="side-nav-link">
                             <i class="uil-truck"></i>
@@ -153,18 +170,19 @@
                     </li>
                 @endif
 
-                @if(auth()->user()->role === 'Admin' || auth()->user()->role === 'Staff')
+                <!-- Billing and Payment (Admin or Manager) -->
+                @if (auth()->user()->role === 'Admin' || (auth()->user()->staff && auth()->user()->staff->role === 'Manager'))
                     <li class="side-nav-item">
-                         <a href="{{ route('billing-payment.index') }}" class="side-nav-link">
-                             <i class="uil-wallet"></i> 
-                             <span>Billing and Payment</span>
-                         </a>
+                        <a href="{{ route('billing-payment.index') }}" class="side-nav-link">
+                            <i class="uil-wallet"></i>
+                            <span>Billing and Payment</span>
+                        </a>
                     </li>
                 @endif
 
             </ul>
 
-            
+
 
 
             <!-- End Sidebar -->
@@ -222,7 +240,6 @@
                 <div class="alert alert-success">
                     {{ session()->get('success') }}
                 </div>
-
             @endif
 
             @if ($errors->any())
@@ -297,41 +314,12 @@
 <!-- Datatable Init js -->
 <script src="{{ asset('assets/js/pages/demo.datatable-init.js') }}"></script>
 
+<!-- Add the following JavaScript to auto-dismiss the alert after 3 seconds -->
 <script>
-    function filterLaundryServices() {
-        const selectedTypeId = document.getElementById('laundry_type_id').value;
-        const serviceDropdown = document.getElementById('laundry_service_id');
-
-        // Loop through options and show/hide based on data-type
-        for (const option of serviceDropdown.options) {
-            if (!option.dataset.type || option.dataset.type == selectedTypeId) {
-                option.style.display = ''; // Show option
-            } else {
-                option.style.display = 'none'; // Hide option
-            }
-        }
-
-        // Reset selection to the default placeholder
-        serviceDropdown.value = '';
-    }
-
-    // Add event listener to the laundry type dropdown
-    document.getElementById('laundry_type_id').addEventListener('change', filterLaundryServices);
-
-    function toggleAddressForm() {
-        const orderMethod = document.getElementById('order_method').value;
-        const deliveryOption = document.getElementById('delivery_option').checked;
-        const addressForm = document.getElementById('address_form');
-
-        // Show address form if "Pickup" is selected or "Delivery Option" is checked
-        addressForm.style.display = (orderMethod === 'Pickup' || deliveryOption) ? 'block' : 'none';
-    }
-
-    // Add event listeners for order method and delivery option
-    document.getElementById('order_method').addEventListener('change', toggleAddressForm);
-    document.getElementById('delivery_option').addEventListener('change', toggleAddressForm);
+    setTimeout(function() {
+        $('.alert').alert('close');
+    }, 3000); // 3000 milliseconds = 3 seconds
 </script>
-
 
 </body>
 
