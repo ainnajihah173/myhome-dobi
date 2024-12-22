@@ -11,7 +11,6 @@ class Order extends Model
     
     protected $fillable = [
         'user_id', 
-        'guest_id',
         'laundry_service_id', 
         'laundry_type_id',
         'remark',

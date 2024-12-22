@@ -5,23 +5,12 @@
             <div class="col-12">
                 <div class="card">
                     <div class="card-body">
-                        @if ($message = session()->has('success'))
-                            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                                <p class="text-black mb-0">{{ session()->get('success') }}</p>
-                            </div>
-
-                            <!-- Add the following JavaScript to auto-dismiss the alert after 3 seconds -->
-                            <script>
-                                setTimeout(function() {
-                                    $('.alert').alert('close');
-                                }, 3000); // 3000 milliseconds = 3 seconds
-                            </script>
-                        @endif
                         <div class="row mt-2">
                             <h4 class="mx-2 header-title">Order List</h4>
-                            <a href="{{ route('order.create') }}" class="btn btn-primary btn-sm"
-                                style="position: absolute; right:2%;">+ New
-                                Order</a>
+                            @if (auth()->user()->role === 'Customer')
+                                <a href="{{ route('order.create') }}" class="btn btn-primary btn-sm"
+                                    style="position: absolute; right:2%;">+ New Order</a>
+                            @endif
                         </div>
                         <br>
                         <table id="basic-datatable" class="table dt-responsive nowrap w-100">
@@ -40,64 +29,153 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach ($orders as $orders)
+                                @foreach ($orders as $order)
                                     <tr>
                                         <td>{{ $loop->iteration }}</td>
                                         @if (auth()->user()->role === 'Staff')
-                                            <td>{{ $orders->user->name ?? $orders->guest->name }}</td>
+                                            <td>{{ $order->user->name ?? $order->guest->name }}</td>
                                         @endif
-                                        <td>{{ $orders->laundryType->laundry_name }}</td>
-                                        <td>{{ $orders->laundryService->service_name }}</td>
-                                        <td>{{ $orders->remark ?? 'No remarks' }}</td>
-                                        <td>RM {{ $orders->total_amount ?? '0.00' }}</td>
+                                        <td>{{ $order->laundryType->laundry_name }}</td>
+                                        <td>{{ $order->laundryService->service_name }}</td>
+                                        <td>{{ Str::limit($order->remark ?? 'No remarks', 20) }}</td>
+                                        <td>RM {{ number_format($order->total_amount, 2) ?? '0.00' }}</td>
                                         <td>
-                                            @if ($orders->status === 'Pending')
+                                            <!-- Display status with badge -->
+                                            @if ($order->status === 'Pending')
                                                 <span class="badge badge-light badge-pill">Pending</span>
-                                            @elseif($orders->status === 'In Work')
+                                            @elseif($order->status === 'Assign Pickup')
+                                                <span class="badge badge-secondary badge-pill">Assign Pickup</span>
+                                            @elseif($order->status === 'Pickup')
+                                                <span class="badge badge-info badge-pill">Pickup</span>
+                                            @elseif($order->status === 'In Work')
                                                 <span class="badge badge-warning badge-pill">In Work</span>
-                                            @elseif($orders->status === 'Pay')
+                                            @elseif($order->status === 'Pay')
                                                 <span class="badge badge-danger badge-pill">Pay</span>
-                                            @elseif($orders->status === 'Complete')
+                                            @elseif($order->status === 'Assign Delivery')
+                                                <span class="badge badge-secondary badge-pill">Assign Delivery</span>
+                                            @elseif($order->status === 'Delivery')
+                                                <span class="badge badge-info badge-pill">Delivery</span>
+                                            @elseif($order->status === 'Complete')
                                                 <span class="badge badge-success badge-pill">Complete</span>
                                             @endif
                                         </td>
                                         <td>
-                                            <!-- View Page-->
-                                            <a href="{{ route('order.show', $orders->id )}}" class="action-icon-info"><i class="mdi mdi-eye"></i></a>
+                                            <!-- View Page -->
+                                            <a href="{{ route('order.show', $order->id) }}" class="action-icon-info"
+                                                data-toggle="tooltip" title="Click here to view order"><i class="mdi mdi-eye"></i></a>
 
+                                            <!-- Update Status to Pay -->
+                                            @if ($order->status === 'In Work' && auth()->user()->role === 'Staff')
+                                                <!-- Trigger Icon -->
+                                                <a href="javascript:void(0);" class="action-icon-warning"
+                                                    data-toggle="modal" data-target="#statusModal-{{ $order->id }}"
+                                                    title="Click here to update status">
+                                                    <i class="mdi mdi-check-circle-outline"></i>
+                                                </a>
 
-                                            @if ($orders->status === 'Pending' || $orders->status === 'In Work')
-                                                @if (auth()->user()->role === 'Staff')
-                                                    <!-- Update to Pay -->
-                                                    <form method="POST" action="{{ route('order.update-status', $orders->id) }}" style="display: inline;">
-                                                        @csrf
-                                                        @method('PATCH')
-                                                        <button type="submit" class="btn btn-warning btn-sm">Mark as Pay</button>
-                                                    </form>
-                                                @endif
+                                                <!-- Modal -->
+                                                <div class="modal fade" id="statusModal-{{ $order->id }}" tabindex="-1"
+                                                    role="dialog" aria-labelledby="statusModalLabel-{{ $order->id }}"
+                                                    aria-hidden="true">
+                                                    <div class="modal-dialog" role="document">
+                                                        <div class="modal-content">
+                                                            <div class="modal-header">
+                                                                <h5 class="modal-title"
+                                                                    id="statusModalLabel-{{ $order->id }}">Confirm
+                                                                    Update Status</h5>
+                                                                <button type="button" class="close" data-dismiss="modal"
+                                                                    aria-label="Close">
+                                                                    <span aria-hidden="true">&times;</span>
+                                                                </button>
+                                                            </div>
+                                                            <div class="modal-body">
+                                                                Are you sure you want to update the order status to "Pay"?
+                                                                <br>
+                                                                Please confirm that all laundry services have been completed
+                                                                successfully.
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn btn-secondary"
+                                                                    data-dismiss="modal">Cancel</button>
+                                                                <form method="POST"
+                                                                    action="{{ route('order.update-status', $order->id) }}">
+                                                                    @csrf
+                                                                    @method('PATCH')
+                                                                    <button type="submit"
+                                                                        class="btn btn-primary">Confirm</button>
+                                                                </form>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             @endif
-                                            
-                                            @if ($orders->status === 'Pending')
-                                                <!-- Edit Page-->
-                                                <a href="{{ route('order.edit', $orders->id )}}" class="action-icon-success"><i
+
+                                            <!-- Edit Page (for Pending orders) -->
+                                            @if ($order->status === 'Pending')
+                                                <a href="{{ route('order.edit', $order->id) }}" class="action-icon-success"
+                                                    data-toggle="tooltip" title="Click here to update order"><i
                                                         class="mdi mdi-square-edit-outline"></i></a>
-                                                @if(auth()->user()->role === 'Customer')
-                                                <!-- Delete -->
-                                                <a href="#" class="action-icon-danger" data-toggle="modal"
-                                                    data-target="#bs-danger-modal-sm"> <i class="mdi mdi-delete"></i></a>
+                                                @if (auth()->user()->role === 'Customer')
+                                                    <a href="#" class="action-icon-danger" data-toggle="modal"
+                                                        data-toggle="tooltip" title="Click here to delete order"
+                                                        data-target="#delete-modal-{{ $order->id }}"><i
+                                                            class="mdi mdi-delete"></i></a>
+
+                                                    <!-- Delete Modal -->
+                                                    <div class="modal fade" id="delete-modal-{{ $order->id }}"
+                                                        tabindex="-1" role="dialog"
+                                                        aria-labelledby="deleteModalLabel-{{ $order->id }}"
+                                                        aria-hidden="true">
+                                                        <div class="modal-dialog modal-sm modal-dialog-centered">
+                                                            <div class="modal-content">
+                                                                <div class="modal-header">
+                                                                    <h4 class="font-14"
+                                                                        id="deleteModalLabel-{{ $order->id }}">Delete
+                                                                        Order</h4>
+                                                                    <button type="button" class="close"
+                                                                        data-dismiss="modal" aria-hidden="true">×</button>
+                                                                </div>
+                                                                <div class="modal-body">
+                                                                    <p>Are you sure you want to delete this order?</p>
+                                                                </div>
+                                                                <div class="modal-footer">
+                                                                    <button type="button" class="btn btn-light btn-sm"
+                                                                        data-dismiss="modal">No, Cancel
+                                                                    </button>
+                                                                    <form method="POST"
+                                                                        action="{{ route('order.destroy', $order->id) }}">
+                                                                        @csrf
+                                                                        @method('DELETE')
+                                                                        <button type="submit"
+                                                                            class="btn btn-danger btn-sm">Yes, Delete
+                                                                        </button>
+                                                                    </form>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <!-- End Modal -->
                                                 @endif
-                                            @elseif($orders->status === 'Pay' || auth()->user()->role === 'Staff' && $orders->status === 'Complete')
-                                                <!-- Pay -->
-                                                <a href="{{ route('billing.customer.payment.page', $orders->id) }}" class="side-nav-link action-icon-secondary" class="side-nav-link" class="action-icon-secondary"><i
-                                                    class="mdi mdi-credit-card"></i></a>
+                                            @elseif($order->status === 'Pay' && auth()->user()->role === 'Customer')
+                                                <!-- Pay Action (for Pay or Complete orders) -->
+                                                <a href="{{ route('billing.customer.payment.page', $order->id) }}"
+                                                    class="side-nav-link action-icon-secondary" data-toggle="tooltip" title="Click here to make payment"><i
+                                                        class="mdi mdi-credit-card"></i></a>
                                             @endif
                                         </td>
                                     </tr>
                                 @endforeach
+                            </tbody>
                         </table>
                     </div> <!-- end card-body-->
                 </div> <!-- end card-->
             </div> <!-- end col -->
         </div> <!-- end row -->
     </div>
+
+    <script>
+        $(document).ready(function() {
+            $('[data-toggle="tooltip"]').tooltip();
+        });
+    </script>
 @endsection
