@@ -20,8 +20,9 @@
                                     <div class="form-group mb-3">
                                         <label for="name">Name <span class="text-danger">*</span></label>
                                         <input type="text" class="form-control" name="name" id="name" value="{{ old('name') }}" required>
-                                        <small id="name-error" class="text-danger"></small>
-                                    </div>
+                                        @error('name')
+                                            <small class="text-danger">{{ $message }}</small>
+                                        @enderror                                    </div>
                                 </div>
                         
                                 <!-- Phone Number Field -->
@@ -64,21 +65,24 @@
                                     </div>
                                 </div>
                         
-                                <!-- Role Field -->
+                                <!-- Role Field with Icons and Colors (User Error Protection) -->
                                 <div class="col-lg-6">
                                     <div class="form-group mb-3">
                                         <label for="role">Role <span class="text-danger">*</span></label>
                                         <select class="form-control" name="role" id="role" required>
-                                            <option value="">Select Role</option>
-                                            <option value="Dry Cleaner" {{ old('role') == 'Dry Cleaner' ? 'selected' : '' }}>Dry Cleaner</option>
-                                            <option value="Dryer" {{ old('role') == 'Dryer' ? 'selected' : '' }}>Dryer</option>
-                                            <option value="Washer/Folder" {{ old('role') == 'Washer/Folder' ? 'selected' : '' }}>Washer/Folder</option>
-                                            <option value="Presser/Ironer" {{ old('role') == 'Presser/Ironer' ? 'selected' : '' }}>Presser/Ironer</option>
-                                            <option value="Pickup & Delivery Driver" {{ old('role') == 'Pickup & Delivery Driver' ? 'selected' : '' }}>Pickup & Delivery Driver</option>
+                                            <option value="" disabled selected>Select Role</option>
+                                            <option value="Dry Cleaner" data-icon="mdi mdi-water"{{ old('role') == 'Dry Cleaner' ? 'selected' : '' }}>🧴 Dry Cleaner</option>
+                                            <option value="Dryer" data-icon="mdi mdi-wind-turbine"{{ old('role') == 'Dryer' ? 'selected' : '' }}>🌬️ Dryer</option>
+                                            <option value="Washer/Folder" data-icon="mdi mdi-folder"{{ old('role') == 'Washer/Folder' ? 'selected' : '' }}>🧺 Washer/Folder</option>
+                                            <option value="Presser/Ironing" data-icon="mdi mdi-iron"{{ old('role') == 'Presser/Ironing' ? 'selected' : '' }}>👕 Presser/Ironing</option>
+                                            <option value="Pickup & Delivery Driver" data-icon="mdi mdi-truck"{{ old('role') == 'Pickup & Delivery Driver' ? 'selected' : '' }}>🚛 Pickup & Delivery Driver</option>
                                         </select>
-                                        <small id="role-error" class="text-danger"></small>
+                                        @error('role')
+                                            <small class="text-danger">{{ $message }}</small>
+                                        @enderror
                                     </div>
                                 </div>
+
                         
                                 <!-- Optional Field: Address -->
                                 <div class="col-lg-12 optional-field d-none">
@@ -91,7 +95,7 @@
                             </div>
                         
                             <div class="text-center mt-2">
-                                <button type="button" onclick="history.back()" class="btn btn-light mr-3">Back</button>
+                                <button type="button" onclick="window.location.href='{{ route('staff.index') }}'"class="btn btn-light mr-3">Back</button>
                                 <button type="submit" class="btn btn-info">Save</button>
                             </div>
                         </form>
@@ -204,5 +208,62 @@
             }
         });
     </script>
+
+    {{-- Check duplicate staff name with their role --}}
+    <script>
+        document.getElementById('role').addEventListener('change', function () {
+            const name = document.getElementById('name').value.trim();
+            const role = this.value;
+
+            if (name && role) {
+                fetch('{{ route('staff.check-duplicate') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    },
+                    body: JSON.stringify({ name, role }),
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.exists) {
+                            document.getElementById('role-error').innerText = 'A staff member with this name and role already exists.';
+                        } else {
+                            document.getElementById('role-error').innerText = '';
+                        }
+                    });
+            }
+        });
+
+    </script>
+
+    {{-- Display staff role with icon --}}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const roleSelect = document.getElementById('role');
+            const styleRoleDisplay = () => {
+                const selectedOption = roleSelect.options[roleSelect.selectedIndex];
+                const icon = selectedOption.getAttribute('data-icon');
+                const color = selectedOption.getAttribute('data-color');
+                
+                if (icon && color) {
+                    roleSelect.style.backgroundImage = `url(${icon})`;
+                    roleSelect.style.backgroundColor = color;
+                    roleSelect.style.color = '#fff'; // Ensure text is visible
+                } else {
+                    roleSelect.style.backgroundImage = 'none';
+                    roleSelect.style.backgroundColor = '#fff'; // Default color
+                    roleSelect.style.color = '#000'; // Default text color
+                }
+            };
+    
+            // Apply initial styling
+            styleRoleDisplay();
+    
+            // Update styling on change
+            roleSelect.addEventListener('change', styleRoleDisplay);
+        });
+    </script>
+    
     
 @endsection

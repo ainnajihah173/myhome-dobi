@@ -36,6 +36,8 @@ Route::middleware('auth')->group(function () {
 
     // Manage Staff
     Route::resource('staff', StaffController::class);
+    //Duplicate check
+    Route::post('/staff/check-duplicate', [StaffController::class, 'checkDuplicate'])->name('staff.check-duplicate');
     // In routes/web.php
     Route::get('/profile', [StaffController::class, 'profile'])->name('profile');
     // Route for updating the entire profile

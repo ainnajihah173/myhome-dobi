@@ -15,32 +15,56 @@ class ScheduleController extends Controller
     {
         // Set the session flag when the schedule page is viewed
         session(['schedule_viewed' => true]);
+
         $staff = Staff::with('user')->get(); // Fetch all staff with their associated user
-        return view('schedule.index', compact('staff'));
+        $events = Schedule::all(); // Fetch all events (or filter as needed)
+
+        return view('schedule.index', compact('staff', 'events'));
     }
+
 
     // Fetch schedules for the calendar
     public function getSchedules()
     {
-        $schedules = Schedule::with('staff.user')->get();
+        $user = auth()->user(); // Get the logged-in user
+        $query = Schedule::with(['staff.user']); // Eager load staff and user relationships
 
-        // Map data into FullCalendar format
-        $events = $schedules->map(function ($schedule) {
+        if ($user->role === 'Staff') {
+            $staff = $user->staff; // Get the related staff record
+            if (!$staff) {
+                return response()->json([]); // If no staff record, return no schedules
+            }
+
+            if ($staff->role === 'Manager') {
+                // Manager can see schedules for all staff roles
+                $query->with('staff');
+            } else {
+                // Other staff can only see their own schedules
+                $query->where('staff_id', $staff->id);
+            }
+        }
+
+        if ($user->role === 'Admin') {
+            // Admin can see all schedules
+            $query->with('staff');
+        }
+
+        // Fetch and format schedules
+        $schedules = $query->get();
+
+        return response()->json($schedules->map(function ($schedule) {
             return [
-                'id' => $schedule->id,
-                'title' => $schedule->staff->user->name, // Event title is the staff's name
-                'start' => $schedule->start_time,        // Event start datetime
-                'end' => $schedule->end_time,            // Event end datetime
-                'category' => $schedule->category,       // Add category (e.g., 'bg-danger')
-                'extendedProps' => [
-                    'role' => $schedule->staff->role,    // Staff role (e.g., 'washer', 'dryer')
-                    'staff_id' => $schedule->staff_id,    // Staff ID
-                ],
+                'id'       => $schedule->id,
+                'title'    => $schedule->staff->user->name, // Staff name
+                'start'    => $schedule->start_time, // Start time in ISO format
+                'end'      => $schedule->end_time, // End time in ISO format
+                'category' => $schedule->category, // Category of the schedule
+                'staff_id' => $schedule->staff_id, // Staff ID
+                'role'     => $schedule->staff->role, // Staff role (e.g., 'Manager', 'Dryer')
             ];
-        });
-
-        return response()->json($events); // Return the events as JSON
+        }));
     }
+
 
 
     // Fetch staff to display in the dropdown
@@ -65,24 +89,41 @@ class ScheduleController extends Controller
      */
     public function store(Request $request)
     {
-        // Ensure only Admin can create schedules
         if (auth()->user()->role !== 'Admin') {
             abort(403, 'Unauthorized action.');
         }
 
+        // Validate the input data
         $validatedData = $request->validate([
             'staff_id'   => 'required|exists:staff,id',
             'category'   => 'required|string',
             'start_time' => 'required|date',
             'end_time'   => 'required|date|after:start_time',
         ]);
-    
-        // Save the schedule in the database
+
+        // Check for overlapping schedules for the same staff (user error protection)
+        $overlappingSchedule = Schedule::where('staff_id', $validatedData['staff_id'])
+            ->where(function ($query) use ($validatedData) {
+                $query->whereBetween('start_time', [$validatedData['start_time'], $validatedData['end_time']])
+                    ->orWhereBetween('end_time', [$validatedData['start_time'], $validatedData['end_time']])
+                    ->orWhere(function ($query) use ($validatedData) {
+                        $query->where('start_time', '<=', $validatedData['start_time'])
+                                ->where('end_time', '>=', $validatedData['end_time']);
+                    });
+            })
+            ->exists();
+
+        if ($overlappingSchedule) {
+            return redirect()->back()->withErrors(['error' => 'This schedule overlaps with an existing schedule for the same staff.']);
+        }
+
+        // Create a new schedule
         Schedule::create($validatedData);
-        
-        // Redirect to the index page with a success message
+
         return redirect()->route('schedule.index')->with('success', 'Schedule created successfully!');
     }
+
+
 
 
     /**
@@ -96,18 +137,55 @@ class ScheduleController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Schedule $schedule)
+    public function edit($id)
     {
-        //
+        $staff = Staff::with('user')->findOrFail($id); // Fetch a specific staff record
+        $events = Schedule::all(); // Fetch all schedules if needed
+        return view('schedule.edit', compact('staff', 'events'));
     }
+
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Schedule $schedule)
+    public function update(Request $request, $id)
     {
-        //
+        $schedule = Schedule::findOrFail($id); // Find the schedule by ID or fail with 404
+
+        // Validate the input data
+        $validatedData = $request->validate([
+            'staff_id'   => 'required|exists:staff,id',
+            'category'   => 'required|string',
+            'start_time' => 'required|date_format:Y-m-d H:i',
+            'end_time'   => 'required|date_format:Y-m-d H:i|after:start_time',
+        ]);
+
+        // Check for overlapping schedules for the same staff, excluding the current schedule
+        $overlappingSchedule = Schedule::where('staff_id', $validatedData['staff_id'])
+            ->where('id', '!=', $schedule->id) // Exclude the current schedule
+            ->where(function ($query) use ($validatedData) {
+                $query->whereBetween('start_time', [$validatedData['start_time'], $validatedData['end_time']])
+                    ->orWhereBetween('end_time', [$validatedData['start_time'], $validatedData['end_time']])
+                    ->orWhere(function ($query) use ($validatedData) {
+                        $query->where('start_time', '<=', $validatedData['start_time'])
+                                ->where('end_time', '>=', $validatedData['end_time']);
+                    });
+            })
+            ->exists();
+
+        //overlapping - user error protection
+        if ($overlappingSchedule) {
+            return redirect()->back()->withErrors(['error' => 'This schedule overlaps with an existing schedule for the same staff.']);
+        }
+
+        // Update the schedule
+        $schedule->update($validatedData);
+
+        return redirect()->route('schedule.index')->with('success', 'Schedule updated successfully!');
     }
+
+
+
 
     /**
      * Remove the specified resource from storage.
@@ -115,9 +193,16 @@ class ScheduleController extends Controller
 
      public function destroy($id)
     {
-        $schedule = Schedule::findOrFail($id);
+        $schedule = Schedule::find($id);
+
+        if (!$schedule) {
+            return response()->json(['message' => 'Schedule not found.'], 404);
+        }
+
         $schedule->delete();
 
-        return redirect()->route('schedule.index')->with('success', 'Schedule deleted successfully!');
+        return response()->json(['message' => 'Schedule deleted successfully!'], 200);
     }
+
+
 }
