@@ -54,56 +54,66 @@ class OrderController extends Controller
      */
     public function store(Request $request)
     {
-        //validate data
-        $request->validate([
+        // Validate the incoming request
+        /*$request->validate([
             'order_method' => 'required|in:Walk in,Pickup',
             'laundry_type_id' => 'required|exists:laundry_types,id',
             'laundry_service_id' => 'required|exists:laundry_services,id',
             'remark' => 'nullable|string',
             'delivery_option' => 'nullable|boolean',
-            'address' => [
-                'nullable',
-                'string',
-                'required_if:order_method,Pickup',
-                'required_if:delivery_option,true',
-            ],
-            'pickup_date' => 'nullable|date|after:now|required_if:order_method,Pickup',
+            'address' => 'required_if:delivery_option,true',
             'name' => 'required_if:guest,true|string|max:255',
             'email' => 'nullable|email|max:255',
             'contact_number' => 'required_if:guest,true|string|max:15',
-        ]);
+        ]);*/
 
+    // Fetch the price of the selected laundry service
+    $service = DB::table('laundry_services')
+        ->where('id', $request->laundry_service_id)
+        ->first();
 
-        // Initialize a new order instance
-        $order = new Order();
-
-        // Assign user or guest based on authentication status
-        if (auth()->check() && auth()->user()->role === 'Customer') {
-            $order->user_id = auth()->user()->id; // Registered user
-        } else {
-            // Guest user logic
-            $guest = Guest::firstOrCreate(
-                ['contact_number' => $request->contact_number],
-                ['name' => $request->name, 'email' => $request->email]
-            );
-            $order->guest_id = $guest->id;
-        }
-
-        // Assign values to the order
-        $order->order_method = $request->order_method;
-        $order->laundry_type_id = $request->laundry_type_id;
-        $order->laundry_service_id = $request->laundry_service_id;
-        $order->delivery_option = $request->delivery_option ?? false;
-        $order->address = $request->delivery_option ? $request->address : null;
-        $order->pickup_date = $request->pickup_date ?? null;
-        $order->remark = $request->remark;
-
-        // Save the order to the database
-        $order->save();
-
-        // Redirect to the order list with a success message
-        return redirect()->route('order.index')->with('success', 'Order created successfully! The manager will update the total amount and quantity.');
+    if (!$service) {
+        return back()->withErrors('Invalid laundry service selected.');
     }
+
+    // Calculate delivery fee
+    $deliveryFee = $request->delivery_option ? 10.00 : 0.00; // RM 10 for delivery
+
+    // Calculate total amount
+    $quantity = $request->quantity;
+    $totalAmount = ($service->price * $quantity) + $deliveryFee;
+
+    // Create a new order instance
+    $order = new Order();
+
+    if (auth()->check() && auth()->user()->role === 'Customer') {
+        $order->user_id = auth()->user()->id; // Registered user
+    } else {
+        // Guest user logic
+        $guest = Guest::firstOrCreate(
+            ['contact_number' => $request->contact_number],
+            ['name' => $request->name, 'email' => $request->email]
+        );
+        $order->guest_id = $guest->id;
+    }
+
+    // Set order attributes
+    $order->order_method = $request->order_method;
+    $order->laundry_type_id = $request->laundry_type_id;
+    $order->laundry_service_id = $request->laundry_service_id;
+    $order->quantity = $quantity;
+    $order->delivery_fee = $deliveryFee;
+    $order->total_amount = $totalAmount;
+    $order->remark = $request->remark;
+    $order->delivery_option = $request->delivery_option ?? false;
+    $order->address = $request->delivery_option ? $request->address : null;
+
+    // Save the order
+    $order->save();
+
+    // Redirect with success message
+    return redirect()->route('order.index')->with('success', 'Order created successfully!');
+}
 
 
     /**
@@ -166,25 +176,25 @@ class OrderController extends Controller
     }
 
     public function updateStatus($id)
-    {
-        // Find the order
-        $order = Order::find($id);
+{
+    // Find the order
+    $order = Order::find($id);
 
-        if (!$order) {
-            return redirect()->route('order.index')->withErrors('Order not found.');
-        }
-
-        // Check the current status
-        if ($order->status === 'In Work') {
-            // Update the status to "Pay"
-            $order->status = 'Pay';
-            $order->save();
-
-            return redirect()->route('order.index')->with('success', 'Order status updated to Pay.');
-        }
-
-        // Return with an error if the status cannot be updated
-        return redirect()->route('order.index')->withErrors('Order status cannot be updated.');
+    if (!$order) {
+        return redirect()->route('order.index')->withErrors('Order not found.');
     }
+
+    // Check the current status
+    if ($order->status === 'Pending' || $order->status === 'In Work') {
+        // Update the status to "Pay"
+        $order->status = 'Pay';
+        $order->save();
+
+        return redirect()->route('order.index')->with('success', 'Order status updated to Pay.');
+    }
+
+    // Return with an error if the status cannot be updated
+    return redirect()->route('order.index')->withErrors('Order status cannot be updated.');
+}
 
 }

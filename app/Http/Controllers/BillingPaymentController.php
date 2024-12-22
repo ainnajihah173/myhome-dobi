@@ -88,35 +88,52 @@ class BillingPaymentController extends Controller
 
     
 
-    public function payOrder(Request $request)
-    {
-        $validated = $request->validate([
-            'order_id' => 'required|exists:orders,id',
-            'payment_method' => 'required|string',
-        ]);
-    
-        $customerId = auth()->user()->id;
-    
-        // Fetch the order and ensure it belongs to the logged-in customer
-        $order = DB::table('orders')
-            ->where('id', $validated['order_id'])
-            ->where('user_id', $customerId)
-            ->first();
-    
-        if (!$order || $order->status !== 'Pay') {
-            return redirect()->route('order.index')->withErrors('Invalid order or payment is not required.');
-        }
-    
-        // Update the order status to 'Complete' and record the payment method
+public function payOrder(Request $request)
+{
+    $validated = $request->validate([
+        'order_id' => 'required|exists:orders,id',
+        'payment_method' => 'required|string',
+        'bank_name' => 'nullable|string', // For online banking
+    ]);
+
+    $customerId = auth()->user()->id;
+
+    // Fetch the order and ensure it belongs to the logged-in customer
+    $order = DB::table('orders')
+        ->where('id', $validated['order_id'])
+        ->where('user_id', $customerId)
+        ->first();
+
+    if (!$order || $order->status !== 'Pay') {
+        return redirect()->route('order.index')->withErrors('Invalid order or payment is not required.');
+    }
+
+    // Handle payment methods
+    if ($validated['payment_method'] === 'paypal') {
+        // PayPal handled via frontend
+    } elseif ($validated['payment_method'] === 'online_banking') {
+        // Add bank details to the order
         DB::table('orders')
             ->where('id', $validated['order_id'])
             ->update([
                 'status' => 'Complete',
                 'updated_at' => now(),
+                'remark' => 'Paid via ' . $validated['bank_name'],
             ]);
-    
-        return redirect()->route('order.index')->with('success', 'Payment successful! Your order is now marked as completed.');
+    } elseif ($validated['payment_method'] === 'cash') {
+        // Cash payment
+        DB::table('orders')
+            ->where('id', $validated['order_id'])
+            ->update([
+                'status' => 'Complete',
+                'updated_at' => now(),
+                'remark' => 'Paid in cash',
+            ]);
     }
+
+    return redirect()->route('order.index')->with('success', 'Payment successful! Your order is now marked as completed.');
+}
+
     
 
 
