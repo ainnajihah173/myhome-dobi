@@ -8,15 +8,6 @@
             <div class="col-12">
                 <div class="card">
                     <div class="card-body">
-                        @if ($errors->any())
-                            <div class="alert alert-danger">
-                                <ul>
-                                    @foreach ($errors->all() as $error)
-                                        <li>{{ $error }}</li>
-                                    @endforeach
-                                </ul>
-                            </div>
-                        @endif
                         <h4 class="">Upload Proof of Pickup</h4>
                         <p class="text-muted font-13 mb-4">
                             Please Fill the Form Below
@@ -97,38 +88,13 @@
                                     <label for="proof-file-{{ $order->id }}">Upload Proof Pickup</label>
                                     <input type="file" name="proof_pickup" class="form-control" id="proof-file-{{ $order->id }}"
                                         accept="image/jpeg,image/png" required>
+                                        
                                 </div>
-
-                                @if ($delivery->order->delivery_option === 1 && $delivery->order->status === 'Delivery')
-                                    <div class="col-lg-6">
-                                        <div class="form-group mb-3">
-                                            <label for="kiosk-number">Delivery Date</label>
-                                            <input type="text" id="delivery_date" class="form-control"
-                                                value="{{ \Carbon\Carbon::parse($delivery->delivery_date)->format('d F Y') }}"
-                                                readonly>
-                                        </div>
-                                    </div>
-                                    <div class="col-lg-6">
-                                        <div class="form-group mb-3">
-                                            <label for="kiosk-number">Delivery Time</label>
-                                            <input type="text" id="delivery_time" class="form-control"
-                                                value="{{ \Carbon\Carbon::parse($delivery->delivery_date)->format('h:i A') }}"
-                                                readonly>
-                                        </div>
-                                    </div>
-                                    <div class="col-lg-12">
-                                        <div class="form-group mb-3">
-                                            <label for="inputdeliverDriver" class="col-form-label">Driver Assign</label>
-                                            <input type="text" name="deliver_driver" class="form-control"
-                                                value="{{ $delivery->deliver_driver }}" readonly>
-                                        </div>
-                                    </div>
-                                @endif
-
                             </div><!-- end row-->
                             <div class="text-center mt-2">
                                 <button type="button" onclick="history.back()" class="btn btn-light mr-3">Back</button>
-                               <button id="confirm-button-{{ $order->id }}" class="btn btn-info" disabled>Confirm Proof of Pickup</button>
+                               <button id="confirm-button-{{ $order->id }}" class="btn btn-info" disabled  data-toggle="tooltip" 
+                                title="Please Upload the proof of the pickup before submit." >Confirm Proof of Pickup</button>
                             </div>
                         </form>
                         
@@ -138,6 +104,7 @@
         </div> <!-- end row -->
     </div>
     <script>
+        // --=====FUNCTIONAL CORRECTNESS (S2): Tactic 2-  Conditional File Upload Enforcement with Dynamic Front-End Controls   =====--
         document.getElementById('proof-file-{{ $order->id }}').addEventListener('change', function() {
             const fileInput = this;
             const confirmButton = document.getElementById('confirm-button-{{ $order->id }}');
@@ -148,5 +115,7 @@
                 confirmButton.disabled = true; // Keep button disabled
             }
         });
+
+        
         </script>
 @endsection

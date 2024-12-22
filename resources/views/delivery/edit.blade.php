@@ -103,6 +103,7 @@
 
     </div>
     <script>
+    // USER ERROR PROTECTION (S1): Tactic 2- Display Error for Invalid Dates
         function validateDeliveryDate() {
             const deliveryDate = new Date(document.getElementById('delivery_date').value);
             const updatedAt = new Date("{{ $orders->updated_at }}"); // Assuming $order->updated_at is passed to the view

@@ -61,13 +61,24 @@ class DeliverySeeder extends Seeder
     }
     private function storeImage($image)
     {
-        $sourceImagePath = database_path("seeders/images/{$image}"); // Adjust the path as necessary
-        $destinationImagePath = "public/banner/{$image}"; // This is where you want to store it
-
+        $sourceImagePath = database_path("seeders/images/{$image}"); // Path to the source image
+        $destinationPath = 'banner'; // Directory in public storage
+    
         // Check if the source image exists
         if (File::exists($sourceImagePath)) {
+            // Ensure the destination directory exists
+            if (!Storage::disk('public')->exists($destinationPath)) {
+                Storage::disk('public')->makeDirectory($destinationPath);
+            }
+    
             // Copy the image to the storage
-            Storage::disk('public')->putFileAs('banner', new File($sourceImagePath), $image);
+            Storage::disk('public')->putFileAs($destinationPath, new File($sourceImagePath), $image);
+            
+            return true; // Indicate success
+        } else {
+            // Log an error if the source image does not exist
+            \Log::error("Source image does not exist: {$sourceImagePath}");
+            return false; // Indicate failure
         }
     }
 }

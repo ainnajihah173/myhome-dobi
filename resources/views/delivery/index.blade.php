@@ -1,3 +1,4 @@
+
 @extends('layouts/base')
 @section('content')
     <br>
@@ -12,48 +13,50 @@
     @endif
     <div class="container-fluid mt-5">
         <div class="row">
-            <div class="col-lg-3">
+            <div class="col-lg-3" data-toggle="tooltip" title="This section shows the total number of tasks assigned.">
                 <div class="card widget-flat">
                     <div class="card-body">
                         <div class="float-right">
-                            <i class="mdi mdi-account-multiple widget-icon bg-info" style="color: black; "></i>
+                            <i class="mdi mdi-account-multiple widget-icon" style="color: black; background-color: #73C0BF;"></i>
                         </div>
                         <h5 class="text-muted font-weight-normal mt-0" title="Pending">Assign</h5>
-                        <h3 class="mt-3 mb-3">4</h3>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-3">
-                <div class="card widget-flat">
-                    <div class="card-body">
-                        <div class="float-right">
-                            <i class="mdi mdi-home-map-marker widget-icon bg-info" style="color: black;"></i>
-                        </div>
-                        <h5 class="text-muted font-weight-normal mt-0" title="In Progress">Pickup</h5>
-                        <h3 class="mt-3 mb-3">0</h3>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-3">
-                <div class="card widget-flat">
-                    <div class="card-body">
-                        <div class="float-right">
-                            <i class="mdi mdi-truck widget-icon bg-info" style="color: black; "></i>
-                        </div>
-                        <h5 class="text-muted font-weight-normal mt-0" title="Pickup">Delivery </h5>
-                        <h3 class="mt-3 mb-3">0</h3>
+                        <h3 class="mt-3 mb-3">{{ $assignCount }}</h3>
                     </div>
                 </div>
             </div>
 
-            <div class="col-lg-3">
+            <div class="col-lg-3" data-toggle="tooltip" title="This section shows the total pickups in progress.">
                 <div class="card widget-flat">
                     <div class="card-body">
                         <div class="float-right">
-                            <i class="mdi mdi-pulse widget-icon bg-info" style="color: black; "></i>
+                            <i class="mdi mdi-home-map-marker widget-icon" style="color: black; background-color: #73C0BF;"></i>
+                        </div>
+                        <h5 class="text-muted font-weight-normal mt-0" title="In Progress">Pickup</h5>
+                        <h3 class="mt-3 mb-3">{{ $pickupCount }}</h3>
+                    </div>
+                </div>
+            </div>
+
+           
+            <div class="col-lg-3" data-toggle="tooltip" title="This section shows the total deliveries in progress.">
+                <div class="card widget-flat">
+                    <div class="card-body">
+                        <div class="float-right">
+                            <i class="mdi mdi-truck widget-icon" style="color: black; background-color: #73C0BF; "></i>
+                        </div>
+                        <h5 class="text-muted font-weight-normal mt-0" title="Pickup">Delivery </h5>
+                        <h3 class="mt-3 mb-3">{{ $deliveryCount }}</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3" data-toggle="tooltip" title="This section shows the total of completed task.">
+                <div class="card widget-flat">
+                    <div class="card-body">
+                        <div class="float-right">
+                            <i class="mdi mdi-pulse widget-icon" style="color: black; background-color: #73C0BF; "></i>
                         </div>
                         <h5 class="text-muted font-weight-normal mt-0" title="Delivery">Complete </h5>
-                        <h3 class="mt-3 mb-3">1</h3>
+                        <h3 class="mt-3 mb-3">{{ $completeCount }}</h3>
                     </div>
                 </div>
             </div>
@@ -90,6 +93,8 @@
                                             <td>{{ $loop->index + 1 }}</td>
                                             <td>{{ $order->user->name ?? $order->guest->name }}</td>
                                             <td>{{ $order->laundryService->service_name }}</td>
+
+                                            {{--===== // OPERABILITY (S2): Tactic 2-Highlight Pending Actions =====--}}
                                             <td>
                                                 @if ($order->order_method === 'Pickup' && $order->status === 'Assign Pickup')
                                                     <span class="badge badge-danger badge-pill">Assign Pickup</span>
@@ -101,39 +106,44 @@
                                                     <span class="badge badge-danger badge-pill">Assign Delivery</span>
                                                 @elseif ($order->status === 'Delivery')
                                                     <span class="badge badge-info badge-pill">Delivery</span>
+                                                    @elseif ( $order->status === 'Complete')
+                                                    <span class="badge badge-success badge-pill">Complete Delivery</span>
                                                 @elseif ($order->order_method === 1 && $order->status === 'Complete')
                                                     <span class="badge badge-success badge-pill">Complete Delivery</span>
                                                 @endif
                                             </td>
                                             <td>
-                                                <!-- Manager Assign Deliver Driver-->
+                                               
+                                                 {{--===== // FUNCTIONAL CORRECTNESS (S1): Tactic 1- Alert Confirmation with Redirection to Enforce Schedule Review =====--}}
+                                                  <!-- Manager Assign Pickup Driver--> 
                                                 @if (auth()->user()->staff->role === 'Manager' && $order->status === 'Assign Pickup')
-                                                    <a href="#" class="action-icon-warning"
+                                                    <a href="#" class="action-icon-warning" 
                                                         onclick="confirmScheduleView(event, '{{ route('schedule.index') }}', '{{ route('delivery.create', $order->id) }}')">
-                                                        <i class="mdi mdi-square-edit-outline"></i>
+                                                        <i class="mdi mdi-square-edit-outline" data-toggle="tooltip" title="Click here to assign pickup driver."></i>
                                                     </a>
                                                 @endif
 
+                                                {{--===== OPERABILITY (S1): Tactic 2 -Simple Labels and Instructions  =====--}}
                                                 <!-- View Page-->
                                                 <a href="{{ route('delivery.show', $order->id) }}"
-                                                    class="action-icon-success"><i class="mdi mdi-eye"></i></a>
+                                                    class="action-icon-success"><i class="mdi mdi-eye" data-toggle="tooltip" title="Click here to view the task details."></i></a>
 
                                                 <!-- Manager Assign Deliver Driver-->
                                                 @if (auth()->user()->staff->role === 'Manager' && $order->status === 'Assign Delivery')
                                                     <!-- Edit Page-->
                                                     <a href="{{ route('delivery.edit', $order->id) }}"
                                                         class="action-icon-danger"><i
-                                                            class="mdi mdi-square-edit-outline"></i></a>
+                                                            class="mdi mdi-square-edit-outline" data-toggle="tooltip" title="Click here to assign delivery driver."></i></a>
                                                 @endif
 
-                                                @foreach ($orders as $order)
+                                                {{--===== // OPERABILITY (S2): Tactic 1-Disable Buttons for Completed Tasks =====--}}
                                                 @if (auth()->user()->staff->role === 'Pickup & Delivery Driver' &&
                                                     $order->order_method === 'Pickup' &&
                                                     $order->status === 'Pickup' &&
                                                     $order->delivery->contains('pickup_id', auth()->user()->id)) <!-- Check if the current user is the pickup driver -->
                                                     <!-- Proof Pickup -->
                                                     <a href="{{ route('delivery.editPickup', $order->id) }}" class="action-icon-info">
-                                                        <i class="mdi mdi-home-map-marker"></i>
+                                                        <i class="mdi mdi-home-map-marker" data-toggle="tooltip" title="Click here to upload proof of pickup."></i>
                                                     </a>
                                                 @endif
                                             
@@ -143,16 +153,11 @@
                                                     $order->delivery->contains('deliver_id', auth()->user()->id)) <!-- Check if the current user is the delivery driver -->
                                                     <!-- Proof Delivery -->
                                                     <a href="{{ route('delivery.editDeliver', $order->id) }}" class="action-icon-warning">
-                                                        <i class="mdi mdi-home-map-marker"></i>
+                                                        <i class="mdi mdi-truck" data-toggle="tooltip" title="Click here to upload proof of delivery."></i>
                                                     </a>
                                                 @endif
-                                            @endforeach
 
-                                                {{-- @if (auth()->user()->staff->role === 'Manager' && $order->status === 'Delivery')
-                                                <!-- Delivery-->
-                                                <a href="}" class="action-icon-danger" class="action-icon-info"><i
-                                                        class="mdi mdi-truck"></i></a>
-                                            @endif --}}
+                                               
                                             </td>
 
                                         </tr>

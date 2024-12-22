@@ -22,7 +22,7 @@ class OrderSeeder extends Seeder
                 'laundry_type_id' => 1, 
                 'quantity' => 5,
                 'total_amount' => 25,
-                'status' => 'Assign Pickup',
+                'status' => 'Pickup',
                 'order_method' => 'Pickup',
                 'delivery_option' => true,
                 'address' => 'No 63, Jalan Beringin, Taman Melodies',

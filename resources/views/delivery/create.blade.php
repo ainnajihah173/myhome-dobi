@@ -20,7 +20,7 @@
                                     <div class="form-group mb-3">
                                         <label for="kiosk-number">Service</label>
                                         <input type="text" name="laundry_services" class="form-control"
-                                        value="{{ $orders->laundryService->service_name}}" readonly>
+                                            value="{{ $orders->laundryService->service_name }}" readonly>
                                     </div>
                                 </div>
                                 <div class="col-lg-6">
@@ -95,7 +95,15 @@
                             </div><!-- end row-->
                             <div class="text-center mt-2">
                                 <button type="button" onclick="history.back()" class="btn btn-light mr-3">Back</button>
-                                <button type="submit" class="btn btn-info"@if(!session('schedule_viewed')) disabled @endif>Assign Pickup Driver</button>
+                              {{--===== // FUNCTIONAL CORRECTNESS (S1): Tactic 2- Disabling the Assign Driver Button Until Schedule is Viewed  =====--}}
+                                <button type="submit" class="btn btn-info" 
+                                    @if(!session('schedule_viewed')) 
+                                        disabled 
+                                        data-toggle="tooltip" 
+                                        title="This button will be disabled if the staff didn't view the schedule." 
+                                    @endif>
+                                    Assign Pickup Driver
+                                </button>
                             </div>
                         </form>
                     </div> <!-- end card-body-->
@@ -104,4 +112,12 @@
         </div> <!-- end row -->
 
     </div>
+@endsection
+
+@section('scripts')
+<script>
+    $(function () {
+        $('[data-toggle="tooltip"]').tooltip(); // Initialize tooltips
+    });
+</script>
 @endsection

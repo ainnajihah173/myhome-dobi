@@ -9,7 +9,7 @@ class Delivery extends Model
 {
     use HasFactory;
 
-    protected $fillable =[
+    protected $fillable = [
         'order_id',
         'pickup_id',
         'deliver_id',
@@ -31,10 +31,9 @@ class Delivery extends Model
         return $this->belongsTo(User::class, 'pickup_id'); // Adjust 'pickup_id' to the foreign key in Delivery table
     }
 
+    // In Delivery.php model
     public function deliveryDriver()
     {
-        return $this->belongsTo(User::class, 'delivery_id'); // Adjust 'pickup_id' to the foreign key in Delivery table
+        return $this->belongsTo(User::class, 'deliver_id'); // Assuming 'deliver_id' is the foreign key
     }
-
-
 }

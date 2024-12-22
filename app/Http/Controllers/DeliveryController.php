@@ -19,6 +19,10 @@ class DeliveryController extends Controller
     public function index()
     {
         $user = auth()->user();
+        $pickupCount = Order::where('status', 'Pickup')->count();
+        $deliveryCount = Order::where('status', 'Delivery')->count();
+        $assignCount = Order::whereIn('status', ['Assign Delivery', 'Assign Pickup'])->count();
+        $completeCount = Order::whereIn('status', ['in Work', 'Complete'])->count();
 
         if ($user->staff->role === 'Manager') {
             // Managers can view all orders and deliveries
@@ -36,7 +40,7 @@ class DeliveryController extends Controller
             $orders = Order::whereIn('id', $delivery->pluck('order_id'))->get();
         }
 
-        return view('delivery.index', compact('orders', 'delivery'));
+        return view('delivery.index', compact('orders', 'delivery', 'pickupCount', 'assignCount', 'deliveryCount','completeCount'));
     }
 
 
@@ -85,12 +89,8 @@ class DeliveryController extends Controller
     {
         $order = Order::findOrFail($id);
         $delivery = Delivery::with(['order', 'pickupDriver', 'deliveryDriver']) // Ensure relationships are loaded
-            ->where('order_id', $id) // Match the delivery to the given order
-            ->first(); // Retrieve a single Delivery model instance
-
-        $users = User::whereHas('staff', function ($query) {
-            $query->where('role', 'Pickup & Delivery Driver');
-        })->get();
+        ->where('order_id', $id) // Match the delivery to the given order
+        ->first(); // Retrieve a single Delivery model instance
 
 
         return view('delivery.show', compact('order', 'delivery'));
@@ -116,6 +116,7 @@ class DeliveryController extends Controller
 
     public function ProofPickup(Request $request, $id)
     {
+        // --=====FUNCTIONAL CORRECTNESS (S2): Tactic 1- Back-End Validation for Pickup Status Updates  =====--
         $request->validate([
             'proof_pickup' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
@@ -170,6 +171,7 @@ class DeliveryController extends Controller
         // Retrieve the pickup date from the order
         $pickupDate = Order::findOrFail($request->order_id)->pickup_date;
 
+ // --=====USER ERROR PROTECTION (S1): Tactic 1 - Implement Date Validation Rules=====--
         $request->validate([
             'deliver_id' => 'required|exists:users,id',
             'delivery_date' => 'nullable|date|after_or_equal:' . $pickupDate . '|after_or_equal:' . now(),
@@ -211,8 +213,9 @@ class DeliveryController extends Controller
 
     public function ProofDeliver(Request $request, $id)
     {
+         //--===== USER ERROR PROTECTION (S2): Tactic 1-Implement File Format and Size Validation=====--
         $request->validate([
-            'proof_pickup' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'proof_deliver' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
         // Find the delivery record
@@ -224,10 +227,10 @@ class DeliveryController extends Controller
         $order->save();
 
         // Handle proof pickup file upload if provided
-        if ($request->hasFile('proof_pickup')) {
-            $originalFileName = $request->file('proof_pickup')->getClientOriginalName();
-            $imagePath = $request->file('proof_pickup')->storeAs('public/banner', $originalFileName);
-            $delivery->proof_pickup = $imagePath;
+        if ($request->hasFile('proof_deliver')) {
+            $originalFileName = $request->file('proof_deliver')->getClientOriginalName();
+            $imagePath = $request->file('proof_deliver')->storeAs('public/banner', $originalFileName);
+            $delivery->proof_deliver = $imagePath;
         }
 
         // Save the updated delivery record
