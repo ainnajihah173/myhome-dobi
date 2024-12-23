@@ -60,56 +60,36 @@ class OrderController extends Controller
      */
     public function store(Request $request)
     {
-        //validate data
+        // Validate data
         $request->validate([
             'order_method' => 'required|in:Walk in,Pickup',
             'laundry_type_id' => 'required|exists:laundry_types,id',
             'laundry_service_id' => 'required|exists:laundry_services,id',
             'remark' => 'nullable|string',
             'delivery_option' => 'nullable|boolean',
-            'address' => [
-                'nullable',
-                'string',
-                'required_if:order_method,Pickup',
-                'required_if:delivery_option,true',
-            ],
+            'address' => 'nullable|string',  // Allow address to be null or string
             'pickup_date' => 'nullable|date|after:now|required_if:order_method,Pickup',
-            'name' => 'required_if:guest,true|string|max:255',
-            'email' => 'nullable|email|max:255',
-            'contact_number' => 'required_if:guest,true|string|max:15',
         ]);
-
 
         // Initialize a new order instance
         $order = new Order();
 
-        // Assign user or guest based on authentication status
-        if (auth()->check() && auth()->user()->role === 'Customer') {
-            $order->user_id = auth()->user()->id; // Registered user
-        } else {
-            // Guest user logic
-            $guest = Guest::firstOrCreate(
-                ['contact_number' => $request->contact_number],
-                ['name' => $request->name, 'email' => $request->email]
-            );
-            $order->guest_id = $guest->id;
-        }
-
         // Assign values to the order
+        $order->user_id = auth()->user()->id;
         $order->order_method = $request->order_method;
         $order->laundry_type_id = $request->laundry_type_id;
         $order->laundry_service_id = $request->laundry_service_id;
         $order->delivery_option = $request->delivery_option ?? false;
-        $order->address = $request->delivery_option ? $request->address : null;
+        $order->address = $request->address; // Save address regardless of delivery_option
         $order->pickup_date = $request->pickup_date ?? null;
         $order->remark = $request->remark;
 
-    // Save the order
-    $order->save();
+        // Save the order
+        $order->save();
 
-    // Redirect with success message
-    return redirect()->route('order.index')->with('success', 'Order created successfully!');
-}
+        // Redirect with success message
+        return redirect()->route('order.index')->with('success', 'Order created successfully!');
+    }
 
 
 
@@ -121,9 +101,12 @@ class OrderController extends Controller
         // Fetch the order with its related data
         $order = Order::with(['user', 'laundryService', 'laundryType'])
             ->findOrFail($id);
+        $delivery = Delivery::with(['order', 'pickupDriver', 'deliveryDriver']) // Ensure relationships are loaded
+            ->where('order_id', $id) // Match the delivery to the given order
+            ->first(); // Retrieve a single Delivery model instance
 
         // Pass the order data to the view
-        return view('order.show', compact('order'));
+        return view('order.show', compact('order', 'delivery'));
     }
 
     // Show the edit page
@@ -139,7 +122,6 @@ class OrderController extends Controller
         } elseif (auth()->user()->role === 'Staff') {
             return view('order.edit', compact('order', 'laundryTypes', 'laundryServices'));
         }
-
     }
 
     // Update the order
@@ -186,39 +168,39 @@ class OrderController extends Controller
             'quantity' => 'required|integer|min:1',
             'delivery_fee' => 'nullable|numeric|min:0', // Delivery fee is optional
         ]);
-    
+
         // Find the order by ID
         $order = Order::findOrFail($id);
-    
+
         // Update the quantity
         $order->quantity = $request->input('quantity');
-    
+
         // Get the price per unit from the related service
         $pricePerUnit = $order->laundryService->price;
-    
+
         // Get the delivery fee (if provided), otherwise default to 0
         $deliveryFee = $request->input('delivery_fee', 0);
-    
+
         // Update the delivery fee in the order
         $order->delivery_fee = $deliveryFee;
-    
+
         // Recalculate the total amount
         $order->total_amount = ($order->quantity * $pricePerUnit) + $deliveryFee;
-        
+
         // Update the order status based on the order method
         if ($order->order_method === 'Pickup') {
             $order->status = 'Assign Pickup';
         } else {
             $order->status = 'In Work';
         }
-    
+
         // Save the updated order
         $order->save();
-    
+
         // Redirect back with a success message
         return redirect()->route('order.index')->with('success', 'Order quantity updated successfully.');
     }
-    
+
 
     public function destroy($id)
     {
@@ -243,26 +225,26 @@ class OrderController extends Controller
 
 
     public function updateStatus($id)
-{
-    // Find the order
-    $order = Order::find($id);
+    {
+        // Find the order
+        $order = Order::find($id);
 
-    if (!$order) {
-        return redirect()->route('order.index')->withErrors('Order not found.');
+        if (!$order) {
+            return redirect()->route('order.index')->withErrors('Order not found.');
+        }
+
+        // Check the current status
+        if ($order->status === 'Pending' || $order->status === 'In Work') {
+            // Update the status to "Pay"
+            $order->status = 'Pay';
+            $order->save();
+
+            return redirect()->route('order.index')->with('success', 'Order status updated to Pay.');
+        }
+
+        // Return with an error if the status cannot be updated
+        return redirect()->route('order.index')->withErrors('Order status cannot be updated.');
     }
-
-    // Check the current status
-    if ($order->status === 'Pending' || $order->status === 'In Work') {
-        // Update the status to "Pay"
-        $order->status = 'Pay';
-        $order->save();
-
-        return redirect()->route('order.index')->with('success', 'Order status updated to Pay.');
-    }
-
-    // Return with an error if the status cannot be updated
-    return redirect()->route('order.index')->withErrors('Order status cannot be updated.');
-}
 
     // Proof of Pickup PDF
     public function generateProofOfPickup($id)
@@ -283,5 +265,4 @@ class OrderController extends Controller
         $pdf = PDF::loadView('order.proof-of-delivery', compact('order'));
         return $pdf->download('Proof_of_Delivery_Order_' . $order->id . '.pdf');
     }
-
 }

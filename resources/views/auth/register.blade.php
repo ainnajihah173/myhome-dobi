@@ -1,52 +1,134 @@
-<x-guest-layout>
-    <form method="POST" action="{{ route('register') }}">
-        @csrf
+<!DOCTYPE html>
+<html lang="en">
 
-        <!-- Name -->
-        <div>
-            <x-input-label for="name" :value="__('Name')" />
-            <x-text-input id="name" class="block mt-1 w-full" type="text" name="name" :value="old('name')" required autofocus autocomplete="name" />
-            <x-input-error :messages="$errors->get('name')" class="mt-2" />
+<head>
+    <meta charset="utf-8" />
+    <meta charset="utf-8" />
+    <title>My Home Dobi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- App favicon -->
+    <link rel="shortcut icon" href="assets/images/brand.png">
+
+    <!-- App css -->
+    <link href="assets/css/icons.min.css" rel="stylesheet" type="text/css" />
+    <link href="assets/css/app.min.css" rel="stylesheet" type="text/css" id="light-style" />
+
+</head>
+
+<body class="loading authentication-bg"
+    data-layout-config='{"leftSideBarTheme":"dark","layoutBoxed":false, "leftSidebarCondensed":false, "leftSidebarScrollable":false,"darkMode":false, "showRightSidebarOnStart": true}'>
+
+    <div class="account-pages mt-5 mb-5">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-5">
+                    <div class="card">
+                        <!-- Logo-->
+                        <div class="card-header text-center bg-light">
+                            <a href="">
+                                <span><img src="assets/images/logo.png" alt="" height="130"></span>
+                            </a>
+                        </div>
+
+                        <div class="card-body p-4">
+
+                            <div class="text-center w-75 m-auto">
+                                <h4 class="text-dark-50 text-center mt-0 font-weight-bold">Free Sign Up</h4>
+                                <p class="text-muted mb-4">Don't have an account? Create your account, it takes less
+                                    than a minute </p>
+                            </div>
+
+                            <form method="POST" action="{{ route('register') }}">
+                                @csrf
+                                <div class="form-group">
+                                    <label for="fullname">Name</label>
+                                    <input class="form-control" type="text" name="name"
+                                        placeholder="Enter your name" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="emailaddress">Email address</label>
+                                    <input class="form-control" type="email" name="email" required
+                                        placeholder="Enter your email">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="fullname">Contact Number</label>
+                                    <input class="form-control" type="text" name="contact_number"
+                                        placeholder="Enter your contact number" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="password">Password</label>
+                                    <div class="input-group input-group-merge">
+                                        <input type="password" name="password" class="form-control"
+                                            placeholder="Enter your password">
+                                        <div class="input-group-append" data-password="false">
+                                            <div class="input-group-text">
+                                                <span class="password-eye"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="password">Confirm Password</label>
+                                    <div class="input-group input-group-merge">
+                                        <input type="password" name="password_confirmation" class="form-control"
+                                            placeholder="Enter your password">
+                                        <div class="input-group-append" data-password="false">
+                                            <div class="input-group-text">
+                                                <span class="password-eye"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="custom-control custom-checkbox">
+                                        <input type="checkbox" class="custom-control-input" id="checkbox-signup">
+                                        <label class="custom-control-label" for="checkbox-signup">I accept <a
+                                                href="#" class="text-muted">Terms and Conditions</a></label>
+                                    </div>
+                                </div>
+
+                                <div class="form-group mb-0 text-center">
+                                    <button class="btn btn-primary" type="submit"> Sign Up </button>
+                                </div>
+
+                            </form>
+                        </div> <!-- end card-body -->
+                    </div>
+                    <!-- end card -->
+
+                    <div class="row mt-3">
+                        <div class="col-12 text-center">
+                            <p class="text-muted">Already have account? <a href="{{ route('login') }}"
+                                    class="text-muted ml-1"><b>Log In</b></a></p>
+                        </div> <!-- end col-->
+                    </div>
+                    <!-- end row -->
+
+                </div> <!-- end col -->
+            </div>
+            <!-- end row -->
         </div>
+        <!-- end container -->
+    </div>
+    <!-- end page -->
 
-        <!-- Email Address -->
-        <div class="mt-4">
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autocomplete="username" />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
-        </div>
+    <footer class="footer footer-alt">
+        MyHome Dobi ©
+        <script>
+            document.write(new Date().getFullYear())
+        </script>
+    </footer>
 
-        <!-- Password -->
-        <div class="mt-4">
-            <x-input-label for="password" :value="__('Password')" />
+    <!-- bundle -->
+    <script src="assets/js/vendor.min.js"></script>
+    <script src="assets/js/app.min.js"></script>
 
-            <x-text-input id="password" class="block mt-1 w-full"
-                            type="password"
-                            name="password"
-                            required autocomplete="new-password" />
+</body>
 
-            <x-input-error :messages="$errors->get('password')" class="mt-2" />
-        </div>
-
-        <!-- Confirm Password -->
-        <div class="mt-4">
-            <x-input-label for="password_confirmation" :value="__('Confirm Password')" />
-
-            <x-text-input id="password_confirmation" class="block mt-1 w-full"
-                            type="password"
-                            name="password_confirmation" required autocomplete="new-password" />
-
-            <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
-        </div>
-
-        <div class="flex items-center justify-end mt-4">
-            <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('login') }}">
-                {{ __('Already registered?') }}
-            </a>
-
-            <x-primary-button class="ms-4">
-                {{ __('Register') }}
-            </x-primary-button>
-        </div>
-    </form>
-</x-guest-layout>
+</html>

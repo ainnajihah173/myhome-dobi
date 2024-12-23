@@ -96,7 +96,9 @@
 
                                             {{--===== // OPERABILITY (S2): Tactic 2-Highlight Pending Actions =====--}}
                                             <td>
-                                                @if ($order->order_method === 'Pickup' && $order->status === 'Assign Pickup')
+                                                @if ($order->order_method === 'Pickup' && $order->status === 'Pay')
+                                                    <span class="badge badge-secondary badge-pill">Pending</span>
+                                                @elseif ($order->order_method === 'Pickup' && $order->status === 'Assign Pickup')
                                                     <span class="badge badge-danger badge-pill">Assign Pickup</span>
                                                 @elseif ($order->order_method === 'Pickup' && $order->status === 'Pickup')
                                                     <span class="badge badge-info badge-pill">Pickup</span>
