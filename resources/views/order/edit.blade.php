@@ -159,7 +159,7 @@
 
                 const pricePerUnit = priceInput.value; // Access value, not the element
                 const quantity = quantityInput.value; // Access value, not the element
-                const deliveryFee = (isDeliveryRequired) ? deliveryFeeInput.value : 'N/A'; // Get value
+                const deliveryFee = (isDeliveryRequired) ? deliveryFeeInput.value : '0.00'; // Get value
                 const totalAmount = totalAmountInput.value; // Get value
 
                 if (isDeliveryRequired) {
