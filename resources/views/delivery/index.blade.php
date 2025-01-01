@@ -104,6 +104,8 @@
                                                     <span class="badge badge-info badge-pill">Pickup</span>
                                                 @elseif ($order->order_method === 'Pickup' && $order->status === 'In Work')
                                                     <span class="badge badge-success badge-pill">Complete Pickup</span>
+                                                @elseif ($order->order_method === 'Pickup' && $order->status === 'Pending')
+                                                    <span class="badge badge-success badge-pill">Complete Pickup</span>
                                                 @elseif ($order->status === 'Assign Delivery')
                                                     <span class="badge badge-danger badge-pill">Assign Delivery</span>
                                                 @elseif ($order->status === 'Delivery')

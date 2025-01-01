@@ -9,7 +9,9 @@
                 <div class="card">
                     <div class="card-body">
                         <h4 class="mb-2">New Order</h4>
-                        <p class="text-muted font-13 mb-3">Write your new order here. We are ready to serve!</p>
+                        <p class="text-muted font-13 mb-1">Write your new order here. We are ready to serve!</p>
+                        <p class="text-muted font-13 mb-3">Fields marked with <span class="text-danger">*</span> are
+                            required.</p>
                         <form method="POST" action="{{ route('order.store') }}">
                             @csrf
                             <div class="row justify-content-center align-items-center g-2">
@@ -21,7 +23,8 @@
                                 </div>
                                 <!-- Phone Number -->
                                 <div class="col-md-6 mb-3">
-                                    <label for="phone" class="form-label">Phone Number<span class="text-danger">*</span></label>
+                                    <label for="phone" class="form-label">Phone Number<span
+                                            class="text-danger">*</span></label>
                                     <input type="tel" class="form-control" name="contact_number"
                                         placeholder="0123456789"
                                         value="{{ old('contact_number', $users->contact_number ?? '') }}" readonly>
@@ -35,7 +38,9 @@
                                 </div>
                                 <!-- Order Method -->
                                 <div class="col-md-6 mb-3">
-                                    <label for="order-method" class="form-label">Order Method<span class="text-danger">*</span></label>
+                                    <label for="order-method" class="form-label">Order Method<span class="text-danger">*
+                                        </span><i class="mdi mdi-information" data-toggle="tooltip"
+                                            title="Walk in means you drop off at the store. Pickup means we'll take the laundry from your home."></i></label>
                                     <select class="form-select form-control" name="order_method" id="order_method" required
                                         onchange="toggleAddressForm()">
                                         <option value="" disabled selected>Please Select...</option>
@@ -53,13 +58,16 @@
                                         <input class="form-check-input" type="checkbox" name="delivery_option"
                                             id="delivery_option" value="1" onchange="toggleAddressForm()">
                                         <label class="form-check-label" for="delivery_option">
-                                            Please tick if you want the delivery option
+                                            Please tick if you want the delivery option <i class="mdi mdi-information"
+                                                data-toggle="tooltip"
+                                                title="Delivery will be made to your home once the laundry is completed."></i>
                                         </label>
                                     </div>
                                 </div>
                                 <!-- Laundry Type -->
                                 <div class="col-md-6 mb-3">
-                                    <label for="laundry-type" class="form-label">Laundry Type<span class="text-danger">*</span></label>
+                                    <label for="laundry-type" class="form-label">Laundry Type<span
+                                            class="text-danger">*</span></label>
                                     <select name="laundry_type_id" id="laundry_type_id" class="form-select form-control"
                                         required onchange="filterLaundryServices()">
                                         <option value="" disabled selected>Please Select...</option>
@@ -73,12 +81,13 @@
                                 </div>
                                 <!-- Service -->
                                 <div class="col-md-6 mb-3">
-                                    <label for="service" class="form-label">Service<span class="text-danger">*</span></label>
+                                    <label for="service" class="form-label">Service<span
+                                            class="text-danger">*</span></label>
                                     <select name="laundry_service_id" id="laundry_service_id"
                                         class="form-select form-control" required>
                                         <option value="" disabled selected>Please Select...</option>
                                         @foreach ($laundryServices as $service)
-                                            <option value="{{ $service->id }}"
+                                            <option value="{{ $service->id }} "
                                                 data-type="{{ $service->laundry_type_id }}">
                                                 {{ $service->service_name }}
                                             </option>
@@ -98,7 +107,8 @@
                                 </div>
                                 <!-- Address -->
                                 <div class="col-md-6 mb-3" id="address_form" style="display: none;">
-                                    <label for="address" class="form-label">Address<span class="text-danger">*</span></label>
+                                    <label for="address" class="form-label">Address<span
+                                            class="text-danger">*</span></label>
                                     <textarea class="form-control" name="address" rows="3" placeholder="Enter your address..."></textarea>
                                     @error('address')
                                         <small class="text-danger">{{ $message }}</small>
@@ -106,7 +116,10 @@
                                 </div>
                                 <!-- Pickup Date -->
                                 <div class="col-md-6 mb-3" id="pickup_date_form" style="display: none;">
-                                    <label for="pickup_date" class="form-label">Pickup Date<span class="text-danger">*</span></label>
+                                    <label for="pickup_date" class="form-label">Pickup Date<span
+                                            class="text-danger">*</span> <i class="mdi mdi-information"
+                                            data-toggle="tooltip"
+                                            title="Select a future date and time for your laundry pickup, between Monday to Friday, 8:00 AM to 5:00 PM."></i></label>
                                     <input type="datetime-local" name="pickup_date" id="pickup_date"
                                         class="form-control">
                                     @error('pickup_date')
@@ -142,15 +155,65 @@
 
         function toggleAddressForm() {
             const orderMethod = document.getElementById('order_method').value;
-            const deliveryOption = document.getElementById('delivery_option').checked;
+            const isDelivery = document.getElementById('delivery_option').checked;
             const addressForm = document.getElementById('address_form');
             const pickupDateForm = document.getElementById('pickup_date_form');
 
-            addressForm.style.display = (orderMethod === 'Pickup' || deliveryOption) ? 'block' : 'none';
-            pickupDateForm.style.display = orderMethod === 'Pickup' ? 'block' : 'none';
+            const addressField = document.querySelector('[name="address"]');
+            const pickupDateField = document.querySelector('[name="pickup_date"]');
+
+            // Toggle visibility of address and pickup date forms
+            addressForm.style.display = (orderMethod === 'Pickup' || isDelivery) ? 'block' : 'none';
+            pickupDateForm.style.display = (orderMethod === 'Pickup') ? 'block' : 'none';
+
+            // Set required attributes based on conditions
+            if (orderMethod === 'Pickup') {
+                pickupDateField.required = true;
+                addressField.required = true;
+            } else if (isDelivery) {
+                pickupDateField.required = false;
+                addressField.required = true;
+            } else {
+                pickupDateField.required = false;
+                addressField.required = false;
+            }
         }
 
-        document.getElementById('order_method').addEventListener('change', toggleAddressForm);
-        document.getElementById('delivery_option').addEventListener('change', toggleAddressForm);
+        // Set minimum date to tomorrow and restrict working hours (8:00 AM to 5:00 PM)
+        document.addEventListener('DOMContentLoaded', function() {
+            const now = new Date();
+
+            // Set minimum date to tomorrow
+            const minDate = new Date(now);
+            minDate.setDate(now.getDate() + 1); // Set to tomorrow
+            minDate.setHours(8, 0, 0, 0); // Set to 8:00 AM
+
+            // Set the min attribute for the pickup date field
+            const dateInput = document.getElementById('pickup_date');
+            dateInput.setAttribute('min', minDate.toISOString().slice(0, 16)); // Format to "YYYY-MM-DDTHH:MM"
+        });
+
+        // Validate the pickup date when it changes
+        function validatePickupDate() {
+            const input = document.getElementById('pickup_date');
+            const selectedDate = new Date(input.value);
+            const day = selectedDate.getDay(); // Get the day of the week (0-6, where 0 is Sunday and 6 is Saturday)
+            const hours = selectedDate.getHours();
+
+            // Check if the selected day is between Monday (1) and Friday (5), and if the time is between 8 AM and 5 PM
+            if (day === 0 || day === 6 || hours < 8 || hours >= 17) {
+                alert('Pickup date and time must be between Monday to Friday, 8:00 AM to 5:00 PM.');
+                input.setCustomValidity('Invalid date or time');
+            } else {
+                input.setCustomValidity('');
+            }
+        }
+
+        // Listen for changes on the pickup date input
+        document.getElementById('pickup_date').addEventListener('change', validatePickupDate);
+
+        $(document).ready(function() {
+            $('[data-toggle="tooltip"]').tooltip();
+        });
     </script>
 @endsection

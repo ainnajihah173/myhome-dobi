@@ -126,7 +126,7 @@ class DeliveryController extends Controller
 
         // Update the order status
         $order = Order::findOrFail($delivery->order_id); // Use delivery's `order_id`
-        $order->status = 'In Work';
+        $order->status = 'Pending';
         $order->save();
 
         // Handle proof pickup file upload if provided

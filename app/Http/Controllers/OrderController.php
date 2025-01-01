@@ -35,7 +35,7 @@ class OrderController extends Controller
 
         // Retrieve orders, ordered by the predefined status order for customers
         if (auth()->user()->role === 'Customer') {
-            $orders = $orders->orderByRaw("FIELD(status, 'Pending', 'In Work', 'Assign Pickup', 'Pickup', 'Pay', 'Assign Delivery', 'Delivery', 'Complete')")->get();
+            $orders = $orders->orderByRaw("FIELD(status, 'Assign Pickup', 'Pickup', 'Pending', 'In Work', 'Pay', 'Assign Delivery', 'Delivery', 'Complete')")->get();
         } else {
             // For staff, we order based on their specific role
             $orders = $orders->orderByRaw("FIELD(status, 'Pending', 'In Work', 'Pay', 'Complete')")->get();
@@ -60,36 +60,35 @@ class OrderController extends Controller
      */
     public function store(Request $request)
     {
-        // Validate data
+        // Validate data based on order_method and delivery_option
         $request->validate([
             'order_method' => 'required|in:Walk in,Pickup',
             'laundry_type_id' => 'required|exists:laundry_types,id',
             'laundry_service_id' => 'required|exists:laundry_services,id',
             'remark' => 'nullable|string',
             'delivery_option' => 'nullable|boolean',
-            'address' => 'nullable|string',  // Allow address to be null or string
+            'address' => 'nullable|string|required_if:order_method,Pickup|required_if:delivery_option,true',
             'pickup_date' => 'nullable|date|after:now|required_if:order_method,Pickup',
         ]);
-
-        // Initialize a new order instance
-        $order = new Order();
-
-        // Assign values to the order
-        $order->user_id = auth()->user()->id;
-        $order->order_method = $request->order_method;
-        $order->laundry_type_id = $request->laundry_type_id;
-        $order->laundry_service_id = $request->laundry_service_id;
-        $order->delivery_option = $request->delivery_option ?? false;
-        $order->address = $request->address; // Save address regardless of delivery_option
-        $order->pickup_date = $request->pickup_date ?? null;
-        $order->remark = $request->remark;
-
-        // Save the order
-        $order->save();
-
-        // Redirect with success message
+    
+        // Create a new order
+        $order = Order::create([
+            'user_id' => auth()->user()->id,
+            'order_method' => $request->order_method,
+            'laundry_type_id' => $request->laundry_type_id,
+            'laundry_service_id' => $request->laundry_service_id,
+            'delivery_option' => $request->delivery_option ?? false,
+            'address' => $request->address ?? null,
+            'pickup_date' => $request->pickup_date ?? null,
+            'remark' => $request->remark ?? null,
+            'status' => $request->order_method === 'Pickup' ? 'Assign Pickup' : 'Pending',
+        ]);
+    
+        // Redirect with a success message
         return redirect()->route('order.index')->with('success', 'Order created successfully!');
     }
+    
+    
 
 
 
@@ -128,38 +127,39 @@ class OrderController extends Controller
     public function update(Request $request, $id)
     {
         $order = Order::findOrFail($id);
-
+    
         // Validate the incoming data
         $validatedData = $request->validate([
             'order_method' => 'required|string|in:Walk in,Pickup',
             'delivery_option' => 'nullable|boolean',
             'laundry_type_id' => 'required|exists:laundry_types,id',
             'laundry_service_id' => 'required|exists:laundry_services,id',
-            'address' => 'nullable|string|max:500',
+            'address' => 'nullable|string|max:500|required_if:order_method,Pickup',
             'remark' => 'nullable|string|max:500',
             'pickup_date' => 'nullable|date|after:now|required_if:order_method,Pickup',
         ]);
-
+    
         // Update the order fields
         $order->order_method = $validatedData['order_method'];
         $order->delivery_option = $request->has('delivery_option') ? 1 : 0;
         $order->laundry_type_id = $validatedData['laundry_type_id'];
         $order->laundry_service_id = $validatedData['laundry_service_id'];
-        $order->pickup_date = $validatedData['pickup_date'] ?? null;
-
-        // If order method is 'Walk in', set address to null
+        $order->remark = $validatedData['remark'] ?? null;
+    
+        // Handle address and pickup_date based on order_method
         if ($validatedData['order_method'] === 'Walk in') {
-            $order->address = null;
+            $order->address = null; // Set address to null for "Walk in"
+            $order->pickup_date = null; // Set pickup_date to null for "Walk in"
         } else {
             $order->address = $validatedData['address'] ?? null;
+            $order->pickup_date = $validatedData['pickup_date'] ?? null;
         }
-
-        $order->remark = $validatedData['remark'] ?? null;
-
+    
         $order->save(); // Save the updated order
-
+    
         return redirect()->route('order.index')->with('success', 'Order updated successfully!');
     }
+    
 
     public function updateQuantity(Request $request, $id)
     {
@@ -188,11 +188,7 @@ class OrderController extends Controller
         $order->total_amount = ($order->quantity * $pricePerUnit) + $deliveryFee;
 
         // Update the order status based on the order method
-        if ($order->order_method === 'Pickup') {
-            $order->status = 'Assign Pickup';
-        } else {
-            $order->status = 'In Work';
-        }
+        $order->status = 'In Work';
 
         // Save the updated order
         $order->save();

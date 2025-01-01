@@ -32,7 +32,7 @@ class DeliverySeeder extends Seeder
                 'proof_pickup' => NULL,
                 'proof_deliver' =>  NULL,
                 'created_at' => now(),
-                'updated_at' => now(),
+                'updated_at' => null,
             ],
 
             [
@@ -43,18 +43,18 @@ class DeliverySeeder extends Seeder
                 'proof_pickup' => $imageToStore,
                 'proof_deliver' =>  NULL,
                 'created_at' => now(),
-                'updated_at' => now(),
+                'updated_at' => null,
             ],
 
             [
-                'order_id' => 5,
+                'order_id' => 4,
                 'pickup_id' => 6,
                 'deliver_id' => NULL,
                 'delivery_date' => NULL,
                 'proof_pickup' => $imageToStore,
                 'proof_deliver' =>  NULL,
                 'created_at' => now(),
-                'updated_at' => now(),
+                'updated_at' => NULL,
             ],
 
         ]);

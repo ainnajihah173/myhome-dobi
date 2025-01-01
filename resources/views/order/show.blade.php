@@ -36,16 +36,16 @@
                         <p><strong>Email:</strong> {{ $order->user->email }}</p>
                         <p><strong>Laundry Type:</strong> {{ $order->laundryType->laundry_name }}</p>
                         <p><strong>Total Amount:</strong> RM {{ number_format($order->total_amount, 2) }}</p>
+                        <p><strong>Delivery Fee:</strong> RM {{ number_format($order->delivery_fee, 2) ?? '0.00' }}</p>
                         <p><strong>Quantity:</strong> {{ $order->quantity ?? 'N/A' }}</p>
-                        <p><strong>Remark:</strong> {{ $order->remark ?? 'No remarks' }}</p>
+                        <p><strong>Unit Per Price:</strong> RM {{ number_format($order->laundryService->price, 2) ?? '0.00' }}</p>
                     </div>
                     <div class="col-md-6">
                         <p><strong>Order Method:</strong> {{ $order->order_method }}</p>
                         <p><strong>Delivery:</strong> {{ $order->delivery_option ? 'Yes' : 'No' }}</p>
-                        <p><strong>Delivery Address:</strong> {{ $order->address ?? 'N/A' }}</p>
+                        <p><strong>Address:</strong> {{ $order->address ?? 'N/A' }}</p>
                         <p><strong>Laundry Service:</strong> {{ $order->laundryService->service_name }}</p>
-                        <p><strong>Pickup Driver:</strong> {{ $delivery->pickupDriver->name }}</p>
-
+                        <p><strong>Remark:</strong> {{ $order->remark ?? 'No remarks' }}</p>
                     </div>
                 </div>
                 <hr>

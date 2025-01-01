@@ -62,7 +62,8 @@
                                         <td>
                                             <!-- View Page -->
                                             <a href="{{ route('order.show', $order->id) }}" class="action-icon-info"
-                                                data-toggle="tooltip" title="Click here to view order"><i class="mdi mdi-eye"></i></a>
+                                                data-toggle="tooltip" title="Click here to view order"><i
+                                                    class="mdi mdi-eye"></i></a>
 
                                             <!-- Update Status to Pay -->
                                             @if ($order->status === 'In Work' && auth()->user()->role === 'Staff')
@@ -111,55 +112,58 @@
                                             @endif
 
                                             <!-- Edit Page (for Pending orders) -->
-                                            @if ($order->status === 'Pending')
+                                            @if ($order->status === 'Pending' && auth()->user()->role === 'Staff')
+                                                <a href="{{ route('order.edit', $order->id) }}" class="action-icon-success"
+                                                    data-toggle="tooltip" title="Click here to update total amount"><i
+                                                        class="mdi mdi-square-edit-outline"></i></a>
+                                            @elseif ($order->status === 'Assign Pickup' && auth()->user()->role === 'Customer')
                                                 <a href="{{ route('order.edit', $order->id) }}" class="action-icon-success"
                                                     data-toggle="tooltip" title="Click here to update order"><i
                                                         class="mdi mdi-square-edit-outline"></i></a>
-                                                @if (auth()->user()->role === 'Customer')
-                                                    <a href="#" class="action-icon-danger" data-toggle="modal"
-                                                        data-toggle="tooltip" title="Click here to delete order"
-                                                        data-target="#delete-modal-{{ $order->id }}"><i
-                                                            class="mdi mdi-delete"></i></a>
+                                                <a href="#" class="action-icon-danger" data-toggle="modal"
+                                                    data-toggle="tooltip" title="Click here to delete order"
+                                                    data-target="#delete-modal-{{ $order->id }}"><i
+                                                        class="mdi mdi-delete"></i></a>
 
-                                                    <!-- Delete Modal -->
-                                                    <div class="modal fade" id="delete-modal-{{ $order->id }}"
-                                                        tabindex="-1" role="dialog"
-                                                        aria-labelledby="deleteModalLabel-{{ $order->id }}"
-                                                        aria-hidden="true">
-                                                        <div class="modal-dialog modal-sm modal-dialog-centered">
-                                                            <div class="modal-content">
-                                                                <div class="modal-header">
-                                                                    <h4 class="font-14"
-                                                                        id="deleteModalLabel-{{ $order->id }}">Delete
-                                                                        Order</h4>
-                                                                    <button type="button" class="close"
-                                                                        data-dismiss="modal" aria-hidden="true">×</button>
-                                                                </div>
-                                                                <div class="modal-body">
-                                                                    <p>Are you sure you want to delete this order?</p>
-                                                                </div>
-                                                                <div class="modal-footer">
-                                                                    <button type="button" class="btn btn-light btn-sm"
-                                                                        data-dismiss="modal">No, Cancel
+                                                <!-- Delete Modal -->
+                                                <div class="modal fade" id="delete-modal-{{ $order->id }}"
+                                                    tabindex="-1" role="dialog"
+                                                    aria-labelledby="deleteModalLabel-{{ $order->id }}"
+                                                    aria-hidden="true">
+                                                    <div class="modal-dialog modal-sm modal-dialog-centered">
+                                                        <div class="modal-content">
+                                                            <div class="modal-header">
+                                                                <h4 class="font-14"
+                                                                    id="deleteModalLabel-{{ $order->id }}">Delete
+                                                                    Order</h4>
+                                                                <button type="button" class="close" data-dismiss="modal"
+                                                                    aria-hidden="true">×</button>
+                                                            </div>
+                                                            <div class="modal-body">
+                                                                <p>Are you sure you want to delete this order?</p>
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn btn-light btn-sm"
+                                                                    data-dismiss="modal">No, Cancel
+                                                                </button>
+                                                                <form method="POST"
+                                                                    action="{{ route('order.destroy', $order->id) }}">
+                                                                    @csrf
+                                                                    @method('DELETE')
+                                                                    <button type="submit"
+                                                                        class="btn btn-danger btn-sm">Yes, Delete
                                                                     </button>
-                                                                    <form method="POST"
-                                                                        action="{{ route('order.destroy', $order->id) }}">
-                                                                        @csrf
-                                                                        @method('DELETE')
-                                                                        <button type="submit"
-                                                                            class="btn btn-danger btn-sm">Yes, Delete
-                                                                        </button>
-                                                                    </form>
-                                                                </div>
+                                                                </form>
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    <!-- End Modal -->
-                                                @endif
+                                                </div>
+                                                <!-- End Modal -->
                                             @elseif($order->status === 'Pay' && auth()->user()->role === 'Customer')
                                                 <!-- Pay Action (for Pay or Complete orders) -->
                                                 <a href="{{ route('billing.customer.payment.page', $order->id) }}"
-                                                    class="side-nav-link action-icon-secondary" data-toggle="tooltip" title="Click here to make payment"><i
+                                                    class="side-nav-link action-icon-secondary" data-toggle="tooltip"
+                                                    title="Click here to make payment"><i
                                                         class="mdi mdi-credit-card"></i></a>
                                             @endif
                                         </td>
