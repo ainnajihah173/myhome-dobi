@@ -182,12 +182,6 @@
             });
         });
 
-        document.getElementById('quantity').addEventListener('input', function() {
-            if (this.value < 1) {
-                this.value = 1; // Reset to minimum value
-            }
-        });
-
         $(document).ready(function() {
             $('[data-toggle="tooltip"]').tooltip();
         });
