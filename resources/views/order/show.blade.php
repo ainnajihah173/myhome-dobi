@@ -67,7 +67,7 @@
 
                     <div class="col-md-6">
                         <p><strong>Delivery Driver:</strong> {{ $delivery->deliveryDriver->name ?? 'N/A' }}</p>
-                        <p><strong>Delivery Date:</strong> {{ $delivery->updated_at ?? 'N/A' }}</p>
+                        <p><strong>Delivery Date:</strong> {{ $delivery->delivery_date ?? 'N/A' }}</p>
                         <p><strong>Proof of Delivery:</strong>
                             @if ($delivery && $delivery->proof_deliver)
                                 <a href="{{ Storage::url($delivery->proof_deliver) }}" target="_blank">View
