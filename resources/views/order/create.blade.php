@@ -185,7 +185,7 @@
 
             // Set minimum date to tomorrow
             const minDate = new Date(now);
-            minDate.setDate(now.getDate() + 1); // Set to tomorrow
+            minDate.setDate(now.getDate()); // Set to tomorrow
             minDate.setHours(8, 0, 0, 0); // Set to 8:00 AM
 
             // Set the min attribute for the pickup date field
