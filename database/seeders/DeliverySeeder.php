@@ -72,7 +72,7 @@ class DeliverySeeder extends Seeder
             }
     
             // Copy the image to the storage
-            Storage::disk('public')->putFileAs($destinationPath, new File($sourceImagePath), $image);
+            Storage::disk('public')->putFileAs($destinationPath, new \Illuminate\Http\File($sourceImagePath), $image);
             
             return true; // Indicate success
         } else {

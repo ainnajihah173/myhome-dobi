@@ -9,7 +9,6 @@ use App\Models\LaundryService;
 use App\Models\LaundryType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Barryvdh\DomPDF\Facade as DomPDF;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class OrderController extends Controller
@@ -248,7 +247,7 @@ class OrderController extends Controller
         $order = Order::with('delivery') // Optionally, load delivery if needed
             ->findOrFail($id);
 
-        $pdf = PDF::loadView('order.proof-of-pickup', compact('order'));
+        $pdf = Pdf::loadView('order.proof-of-pickup', compact('order'));
         return $pdf->download('Proof_of_Pickup_Order_' . $order->id . '.pdf');
     }
 
@@ -258,7 +257,7 @@ class OrderController extends Controller
         $order = Order::with('delivery') // Optionally, load delivery if needed
             ->findOrFail($id);
 
-        $pdf = PDF::loadView('order.proof-of-delivery', compact('order'));
+        $pdf = Pdf::loadView('order.proof-of-delivery', compact('order'));
         return $pdf->download('Proof_of_Delivery_Order_' . $order->id . '.pdf');
     }
 }

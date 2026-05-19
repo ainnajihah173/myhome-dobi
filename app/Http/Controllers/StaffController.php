@@ -6,6 +6,7 @@ use App\Models\Staff;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class StaffController extends Controller
 {
@@ -62,30 +63,40 @@ class StaffController extends Controller
                 ->withInput();
         }
 
-        // Save the user data to the users table
-        $user = User::create([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'password' => bcrypt($validated['password']),
-            'contact_number' => $validated['contact_number'],
-            'role' => 'Staff', // Set role as Staff
-        ]);
+        DB::beginTransaction();
+        try {
+            // Save the user data to the users table
+            $user = User::create([
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'password' => bcrypt($validated['password']),
+                'contact_number' => $validated['contact_number'],
+                'role' => 'Staff',
+            ]);
 
-        // Save staff-specific details to the staff table
-        $user->staff()->create([
-            'gender' => $validated['gender'],
-            'role' => $validated['role'],
-            'address' => $validated['address'],
-        ]);
+            // Save staff-specific details to the staff table
+            $user->staff()->create([
+                'gender' => $validated['gender'],
+                'role' => $validated['role'],
+                'address' => $validated['address'],
+            ]);
 
-        // Redirect back with a success message
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()
+                ->withErrors(['error' => 'Failed to create staff: ' . $e->getMessage()])
+                ->withInput();
+        }
+
         return redirect()->route('staff.index')->with('success', 'Staff created successfully.');
     }
 
     public function checkDuplicate(Request $request)
     {
-        $exists = Staff::where('name', $request->name)
-            ->where('role', $request->role)
+        $exists = Staff::whereHas('user', function ($query) use ($request) {
+            $query->where('name', $request->name);
+        })->where('role', $request->role)
             ->exists();
 
         return response()->json(['exists' => $exists]);
@@ -143,22 +154,30 @@ class StaffController extends Controller
             $userData['password'] = bcrypt($validated['password']);
         }
 
-        // Update user info
-        $staff->user->update($userData);
+        DB::beginTransaction();
+        try {
+            // Update user info
+            $staff->user->update($userData);
 
-        // Prepare staff update data
-        $staffData = [
-            'gender' => $validated['gender'],
-            'address' => $validated['address'],
-        ];
+            // Prepare staff update data
+            $staffData = [
+                'gender' => $validated['gender'],
+                'address' => $validated['address'],
+            ];
 
-        // Update role only if it's explicitly provided
-        if (!empty($validated['role']) && $validated['role'] !== $staff->role) {
-            $staffData['role'] = $validated['role'];
+            // Update role only if it's explicitly provided
+            if (!empty($validated['role']) && $validated['role'] !== $staff->role) {
+                $staffData['role'] = $validated['role'];
+            }
+
+            // Update staff info
+            $staff->update($staffData);
+
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->withErrors(['error' => 'Failed to update staff: ' . $e->getMessage()]);
         }
-
-        // Update staff info
-        $staff->update($staffData);
 
         return redirect()->route('staff.index')->with('success', 'Staff updated successfully.');
     }

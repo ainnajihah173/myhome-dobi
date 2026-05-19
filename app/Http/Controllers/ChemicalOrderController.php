@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ChemicalOrder;
 use App\Models\Inventory;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ChemicalOrderController extends Controller
 {
@@ -23,15 +24,24 @@ class ChemicalOrderController extends Controller
         // Fetch the inventory item
         $inventory = Inventory::findOrFail($request->inventory_id);
 
-        // Create a new chemical order
-        ChemicalOrder::create([
-            'details' =>  $inventory->name,
-            'supplier_name' => $request->supplier_name,
-            'quantity' => $request->quantity,
-            'inventory_id' => $inventory->id, // Link to the inventory item
-        ]);
+        DB::beginTransaction();
+        try {
+            // Create a new chemical order
+            ChemicalOrder::create([
+                'details' =>  $inventory->name,
+                'supplier_name' => $request->supplier_name,
+                'quantity' => $request->quantity,
+                'inventory_id' => $inventory->id,
+            ]);
 
-        
+            // Update inventory stock level
+            $inventory->decrement('current_stock', $request->quantity);
+
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->withErrors(['error' => 'Failed to place chemical order.']);
+        }
 
         // Redirect with success message
         return redirect()->route('inventory.index')->with('success', 'Order placed successfully!');
